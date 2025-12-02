@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true, // needed if your backend uses cookies
 });
@@ -18,7 +18,14 @@ interface User {
   role: string;
   profileImage?: string;
 }
-
+export interface RegisterParams {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword?: string;
+  location?: string;
+  bio?: string;
+}
 export const useAuth = () => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -54,16 +61,17 @@ export const useAuth = () => {
     }
   };
 
-  const register = async (
-    fullName: string,
-    email: string,
-    password: string
-  ) => {
+  const register = async (data: RegisterParams) => {
     try {
+      const { fullName, email, password, confirmPassword, location, bio } =
+        data;
       const res = await api.post("/auth/register", {
         fullName,
         email,
         password,
+        confirmPassword,
+        location,
+        bio,
       });
       setUser(res.data.data.user);
       setIsAuthenticated(true);
