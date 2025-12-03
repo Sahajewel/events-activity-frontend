@@ -1,13 +1,12 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Event } from "@/types";
-import { formatDate, formatCurrency } from "@/lib/utils";
 import { Calendar, MapPin, Users, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface EventCardProps {
   event: Event;
@@ -30,7 +29,7 @@ export function EventCard({ event }: EventCardProps) {
               className="object-cover group-hover:scale-110 transition-transform duration-300"
             />
           ) : (
-            <div className="w-full h-full bg-linear-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
+            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
               <Calendar className="h-16 w-16 text-muted-foreground" />
             </div>
           )}
@@ -83,15 +82,15 @@ export function EventCard({ event }: EventCardProps) {
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
                 <AvatarImage
-                  src={event.host.profileImage}
-                  alt={event.host.fullName}
+                  src={event?.host?.profileImage}
+                  alt={event?.host?.fullName}
                 />
                 <AvatarFallback>
                   <User className="h-4 w-4" />
                 </AvatarFallback>
               </Avatar>
               <div className="text-sm">
-                <p className="font-medium">{event.host.fullName}</p>
+                <p className="font-medium">{event?.host?.fullName}</p>
               </div>
             </div>
             <div className="text-right">

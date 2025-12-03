@@ -10,8 +10,8 @@ import { Calendar, MapPin, Clock } from "lucide-react";
 
 import Link from "next/link";
 import Image from "next/image";
-import { api } from "@/hooks/useAuth";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { api } from "@/hooks/useAuth";
 
 export function UserDashboard() {
   const { data: bookings, isLoading } = useQuery({

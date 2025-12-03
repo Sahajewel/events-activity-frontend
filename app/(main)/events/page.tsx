@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+
+import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useEvents } from "@/hooks/useEvents";
-import { EventCard } from "@/components/events/EventsCards";
+import { EventCard } from "@/components/events/EventsCards"; // FIXED: Correct import path
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +17,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
-import { useState } from "react";
 
 export default function EventsPage() {
   const [search, setSearch] = useState("");
@@ -37,7 +38,7 @@ export default function EventsPage() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1 bg-background">
-        <div className="bg-linear-to-r from-primary to-purple-600 text-white py-16">
+        <div className="bg-gradient-to-r from-primary to-purple-600 text-white py-16">
           <div className="container mx-auto px-4">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Discover Events

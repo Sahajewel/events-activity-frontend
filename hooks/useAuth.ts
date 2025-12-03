@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// src/hooks/useAuth.ts
+/*eslint-disable @typescript-eslint/no-explicit-any */
+// /* eslint-disable @typescript-eslint/no-explicit-any */
+// // src/hooks/useAuth.ts
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
