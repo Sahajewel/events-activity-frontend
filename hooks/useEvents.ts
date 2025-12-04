@@ -39,10 +39,8 @@ export function useCreateEvent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: FormData) => {
-      const response = await api.post("/events", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+    mutationFn: async (data: any) => {
+      const response = await api.post("/events", data);
       return response.data;
     },
     onSuccess: () => {
@@ -55,23 +53,49 @@ export function useCreateEvent() {
   });
 }
 
+// export function useCreateEvent() {
+//   const queryClient = useQueryClient();
+//   return useMutation({
+//     mutationFn: async (data: FormData) => {
+//       const response = await api.post("/events", data, {
+//         headers: { "Content-Type": "multipart/form-data" },
+//       });
+//       return response.data;
+//     },
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({ queryKey: ["events"] });
+//       toast.success("Event created successfully!");
+//     },
+//     onError: (error: any) => {
+//       toast.error(error.response?.data?.message || "Failed to create event");
+//     },
+//   });
+// }
+
 // Update event
+// hooks/useEvents.ts → ei ta replace kor
 export function useUpdateEvent(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: FormData) => {
-      const response = await api.patch(`/events/${id}`, data, {
-        headers: { "Content-Type": "multipart/form-data" },
+    mutationFn: async (formData: FormData) => {
+      // Axios er transformRequest diye number/string thik kore pathabo
+      const response = await api.patch(`/events/${id}`, formData, {
+        transformRequest: (data) => {
+          // FormData ke raw pathate dibi, axios nijei boundary set korbe
+          return data;
+        },
       });
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["event", id] });
+      queryClient.invalidateQueries({ queryKey: ["my-events"] });
       toast.success("Event updated successfully!");
     },
     onError: (error: any) => {
+      console.log(error.response?.data);
       toast.error(error.response?.data?.message || "Failed to update event");
     },
   });

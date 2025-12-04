@@ -18,6 +18,8 @@ interface User {
   email: string;
   role: string;
   profileImage?: string;
+  location?: string;
+  bio?: string;
 }
 export interface RegisterParams {
   fullName: string;

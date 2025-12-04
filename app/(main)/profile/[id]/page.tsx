@@ -3,7 +3,7 @@
 
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Booking, User } from "@/types";
+import { User } from "@/types";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -65,8 +65,8 @@ export default function ProfilePage() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1 bg-background">
-        {/* Profile Header */}
-        <div className="bg-linear-to-r from-primary to-purple-600 text-white py-16">
+        {/* Profile Header - FIXED gradient */}
+        <div className="bg-gradient-to-r from-primary to-purple-600 text-white py-16">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row items-center gap-6">
               <Avatar className="h-32 w-32 border-4 border-white shadow-xl">
