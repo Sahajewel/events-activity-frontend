@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,51 +30,60 @@ const profileSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
   bio: z.string().optional(),
   location: z.string().optional(),
-  interests: z.string().optional(), // Comma separated
+  interests: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export default function EditProfilePage() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth(); // loading add korsi!
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(
-    user?.profileImage || null
-  );
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      fullName: user?.fullName || "",
-      bio: user?.bio || "",
-      location: user?.location || "",
-      // interests: user?.interests?.join(", ") || "",
+      fullName: "",
+      bio: "",
+      location: "",
+      interests: "",
     },
   });
 
-  React.useEffect(() => {
-    if (!isAuthenticated) {
+  // Loading + Auth Check
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
       toast.error("Please login to edit profile");
-      router.push("/login");
+      router.replace("/login");
     }
-  }, [isAuthenticated, router]);
+  }, [loading, isAuthenticated, router]);
+
+  // User load hole form fill kor
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        fullName: user.fullName || "",
+        bio: user.bio || "",
+        location: user.location || "",
+        // interests: user.interests?.join(", ") || "",
+      });
+      setImagePreview(user.profileImage || null);
+    }
+  }, [user, form]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image size should be less than 5MB");
-        return;
-      }
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB");
+      return;
     }
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
   };
 
   const removeImage = () => {
@@ -83,37 +92,34 @@ export default function EditProfilePage() {
   };
 
   const onSubmit = async (data: ProfileFormValues) => {
+    if (!user) return;
+
+    setIsSubmitting(true);
+    const formData = new FormData();
+
+    formData.append("fullName", data.fullName);
+    if (data.bio?.trim()) formData.append("bio", data.bio.trim());
+    if (data.location?.trim())
+      formData.append("location", data.location.trim());
+
+    if (data.interests?.trim()) {
+      const interests = data.interests
+        .split(",")
+        .map((i) => i.trim())
+        .filter(Boolean);
+      formData.append("interests", JSON.stringify(interests));
+    }
+
+    if (imageFile) {
+      formData.append("profileImage", imageFile);
+    }
+
     try {
-      setIsSubmitting(true);
-      const formData = new FormData();
+      const res = await api.patch("/users/profile", formData); // header delete korsi!
 
-      formData.append("fullName", data.fullName);
-      if (data.bio) formData.append("bio", data.bio);
-      if (data.location) formData.append("location", data.location);
-
-      // Convert comma-separated interests to array
-      if (data.interests) {
-        const interestsArray = data.interests
-          .split(",")
-          .map((i) => i.trim())
-          .filter((i) => i);
-        formData.append("interests", JSON.stringify(interestsArray));
-      }
-
-      if (imageFile) {
-        formData.append("profileImage", imageFile);
-      }
-
-      const response = await api.patch("/users/profile", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      // Update local storage
-      const updatedUser = response.data.data;
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-
+      localStorage.setItem("user", JSON.stringify(res.data.data));
       toast.success("Profile updated successfully!");
-      router.push(`/profile/${user?.id}`);
+      router.push(`/profile/${user.id}`);
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
@@ -121,9 +127,16 @@ export default function EditProfilePage() {
     }
   };
 
-  if (!isAuthenticated || !user) {
-    return null;
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
+
+  if (!isAuthenticated || !user) return null;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -132,9 +145,7 @@ export default function EditProfilePage() {
         <div className="bg-gradient-to-r from-primary to-purple-600 text-white py-12">
           <div className="container mx-auto px-4">
             <h1 className="text-4xl font-bold mb-2">Edit Profile</h1>
-            <p className="text-primary-foreground/90">
-              Update your personal information
-            </p>
+            <p>Update your personal information</p>
           </div>
         </div>
 
@@ -146,20 +157,16 @@ export default function EditProfilePage() {
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-6"
                 >
-                  {/* Profile Image */}
+                  {/* Avatar */}
                   <div className="flex flex-col items-center space-y-4">
                     <Avatar className="h-32 w-32">
-                      {imagePreview ? (
-                        <AvatarImage src={imagePreview} alt="Profile" />
-                      ) : (
-                        <AvatarFallback className="text-4xl">
-                          {getInitials(user.fullName)}
-                        </AvatarFallback>
-                      )}
+                      <AvatarImage src={imagePreview || ""} />
+                      <AvatarFallback className="text-4xl">
+                        {getInitials(user.fullName)}
+                      </AvatarFallback>
                     </Avatar>
-
-                    <div className="flex gap-2">
-                      <label className="cursor-pointer">
+                    <div className="flex gap-3">
+                      <label>
                         <Button
                           type="button"
                           variant="outline"
@@ -168,13 +175,13 @@ export default function EditProfilePage() {
                         >
                           <span>
                             <Upload className="h-4 w-4 mr-2" />
-                            Upload Photo
+                            Change Photo
                           </span>
                         </Button>
                         <input
                           type="file"
-                          className="hidden"
                           accept="image/*"
+                          className="hidden"
                           onChange={handleImageChange}
                         />
                       </label>
@@ -192,7 +199,7 @@ export default function EditProfilePage() {
                     </div>
                   </div>
 
-                  {/* Full Name */}
+                  {/* Form Fields */}
                   <FormField
                     control={form.control}
                     name="fullName"
@@ -200,14 +207,13 @@ export default function EditProfilePage() {
                       <FormItem>
                         <FormLabel>Full Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="John Doe" {...field} />
+                          <Input {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  {/* Bio */}
                   <FormField
                     control={form.control}
                     name="bio"
@@ -215,18 +221,13 @@ export default function EditProfilePage() {
                       <FormItem>
                         <FormLabel>Bio</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="Tell us about yourself..."
-                            className="min-h-[100px]"
-                            {...field}
-                          />
+                          <Textarea className="min-h-24" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  {/* Location */}
                   <FormField
                     control={form.control}
                     name="location"
@@ -241,40 +242,31 @@ export default function EditProfilePage() {
                     )}
                   />
 
-                  {/* Interests */}
-                  <FormField
+                  {/* <FormField
                     control={form.control}
                     name="interests"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Interests</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Music, Sports, Technology (comma separated)"
-                            {...field}
-                          />
+                          <Input placeholder="Music, Sports, Tech" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
+                  /> */}
 
-                  {/* Role Badge (Read Only) */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Current Role</label>
-                    <div>
-                      <Badge variant="secondary">{user.role}</Badge>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Role:</span>
+                    <Badge variant="secondary">{user.role}</Badge>
                   </div>
 
-                  {/* Submit Buttons */}
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 pt-6">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => router.back()}
                       className="flex-1"
-                      disabled={isSubmitting}
                     >
                       Cancel
                     </Button>
@@ -283,17 +275,7 @@ export default function EditProfilePage() {
                       disabled={isSubmitting}
                       className="flex-1"
                     >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <User className="mr-2 h-4 w-4" />
-                          Save Changes
-                        </>
-                      )}
+                      {isSubmitting ? <>Saving...</> : <>Save Changes</>}
                     </Button>
                   </div>
                 </form>
