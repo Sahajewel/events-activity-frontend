@@ -17,17 +17,24 @@ export function useCreatePaymentIntent() {
   });
 }
 
+// hooks/usePayment.ts
 export function useConfirmPayment() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (paymentIntentId: string) => {
-      const response = await api.post("/payments/confirm", { paymentIntentId });
+      if (!paymentIntentId) {
+        throw new Error("paymentIntentId is required");
+      }
+
+      const response = await api.post("/payments/confirm", {
+        paymentIntentId,
+      });
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
       queryClient.invalidateQueries({ queryKey: ["user-bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
       toast.success("Payment successful!");
     },
     onError: (error: any) => {

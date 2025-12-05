@@ -14,6 +14,7 @@ import {
   Search,
   Plus,
   LayoutDashboard,
+  BookMarked,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,6 +59,7 @@ export function Navbar() {
         ...(user?.role === "HOST" || user?.role === "ADMIN"
           ? [{ href: "/events/create", label: "Create Event", icon: Plus }]
           : []),
+        { href: "/my-bookings", label: "My Bookings", icon: BookMarked },
         { href: "/my-events", label: "My Events", icon: Calendar },
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       ]
