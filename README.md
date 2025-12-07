@@ -81,7 +81,7 @@ pnpm install
 Create a `.env.local` file in the root directory and add:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_key
 ```
 
