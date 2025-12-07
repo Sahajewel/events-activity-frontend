@@ -1,8 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Events & Activities Platform - Frontend
 
-## Getting Started
+A modern web application built with Next.js that connects people who want to participate in local events, sports, or hobbies but don't have companions to join them.
 
-First, run the development server:
+## 🌐 Live Demo
+
+- **Live URL**: [https://events-frontend-lake.vercel.app]
+- **Admin Credentials**: gmail: admin@gmail.com, password: 123456
+
+## ✨ Features
+
+### User Features
+
+- 🔐 Secure authentication with JWT tokens
+- 👤 Comprehensive profile management with image uploads
+- 🔍 Advanced event search with filters (category, date, location)
+- 🎟️ Join and leave events seamlessly
+- ⭐ Rate and review hosts after attending events
+- 💳 Secure payment processing for paid events
+- 📱 Fully responsive design for all devices
+
+### Host Features
+
+- 📝 Create and manage events with detailed information
+- 👥 Track event participants and capacity
+- 💰 Set joining fees and track revenue
+- 📊 Dashboard with event statistics
+- ✏️ Edit or cancel hosted events
+
+### Admin Features
+
+- 👨‍💼 User management (view, suspend)
+- 🏢 Host management and monitoring
+- 🎭 Event moderation and management
+- 📈 Platform-wide statistics and analytics
+
+## 🛠️ Technology Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Styling**: Tailwind CSS
+- **State Management**: React Hooks / Context API
+- **Form Handling**: React Hook Form
+- **HTTP Client**: Axios
+- **Image Upload**: Cloudinary
+- **Payment**: Stripe
+- **Authentication**: JWT
+- **UI Components**: shadcn/ui (optional)
+- **Icons**: Lucide React
+- **Date Handling**: date-fns / Day.js
+- **Notifications**: React Hot Toast / Sonner
+
+## 📋 Prerequisites
+
+Before running this project, make sure you have:
+
+- Node.js (v18 or higher)
+- npm or yarn or pnpm
+- Backend server running (see backend README)
+
+## 🚀 Installation & Setup
+
+### 1. Clone the repository
+
+```bash
+git clone [https://github.com/Sahajewel/events-activity-frontend]
+cd events-activities-frontend
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+### 3. Environment Variables
+
+Create a `.env.local` file in the root directory and add:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_key
+```
+
+### 4. Run the development server
 
 ```bash
 npm run dev
@@ -10,27 +93,209 @@ npm run dev
 yarn dev
 # or
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+frontend/
+├── app/
+│   ├── (auth)/
+│   │   ├── login/
+│   │   └── register/
+│   ├── (main)/
+│   │   ├── events/
+│   │   │   ├── [id]/
+│   │   │   ├── create/
+│   │   │   └── page.tsx
+│   │   ├── profile/
+│   │   │   └── [id]/
+            └── page.tsx
+│   │   ├── dashboard/
+│   │   └── layout.tsx
+│   ├── admin/
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/
+│   ├── ui/
+│   ├── layout/
+│   │   ├── Navbar.tsx
+│   │   └── Footer.tsx
+│   ├── events/
+│   │   ├── EventCard.tsx
+│   ├── profile/
+│   └── dashboard/
+├── lib/
+│   ├── api.ts
+│   └── utils.ts
+├── hooks/
+│   ├── useAuth.ts
+│   └── useEvents.ts
+│   └── useBooking.ts
+│   └── useEvents.ts
+│   └── useAuth.ts
+│   └── usePayment.ts
+│   └── useProfile.ts
+│   └── useReview.ts
+├── providers/
+│   └── Providers.tsx
+├── types/
+│   └── index.ts
+├── public/
+│   └── images/
+└── styles/
+    └── globals.css
+```
 
-## Learn More
+## 🎨 Key Pages
 
-To learn more about Next.js, take a look at the following resources:
+### Public Pages
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Home (`/`)**: Landing page with featured events and platform overview
+- **Events (`/events`)**: Browse and search all available events
+- **Event Details (`/events/[id]`)**: Detailed information about a specific event
+- **Login (`/login`)**: User authentication
+- **Register (`/register`)**: New user registration
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Protected Pages (User)
 
-## Deploy on Vercel
+- **Profile (`/profile/[id]`)**: View and edit user profile
+- **Dashboard (`/dashboard`)**: User's joined events and saved events
+- **My Events (`/my-events`)**: Events user has joined
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Protected Pages (Host)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Create Event (`/events/create`)**: Form to create new events
+- **Edit Event (`/events/[id]/edit`)**: Edit existing events
+- **Host Dashboard (`/profile/[id]`)**: Manage hosted events and participants
+
+### Protected Pages (Admin)
+
+- ** Dashboard (`/dashboard`)**: Platform statistics and overview
+
+## 🔑 API Integration
+
+The frontend communicates with the backend through RESTful API endpoints:
+
+```typescript
+// Example API calls
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+});
+
+// Auth
+POST /auth/register
+POST /auth/login
+
+// Users
+GET /users/:id
+GET /users/:id
+PATCH /users/profile
+
+// Events
+GET /events
+GET /events/:id
+POST /events (Host. Admin only)
+Patch /events/:id (Host, Admin only)
+
+
+// Payments
+POST /my-bookings
+
+```
+
+## 🎯 Features Implementation
+
+### Authentication
+
+- JWT token stored in localStorage
+- Automatic token refresh
+- Protected routes with middleware
+- Role-based access control
+
+### Image Upload
+
+- Cloudinary integration for profile and event images
+- Client-side image compression before upload
+- Image preview before submission
+
+### Payment Processing
+
+- Stripe integration for secure payments
+- Payment confirmation and receipt
+
+### Search & Filters
+
+- Real-time search functionality
+- Multiple filter options (category, date, location)
+- Pagination for large datasets
+
+## 🧪 Testing
+
+## 🏗️ Build for Production
+
+```bash
+npm run build
+```
+
+## 📦 Deployment
+
+### Vercel (Recommended)
+
+1. Push your code to GitHub
+2. Import project in Vercel
+3. Add environment variables
+4. Deploy
+
+```bash
+# Or using Vercel CLI
+vercel --prod
+```
+
+## 🔧 Configuration
+
+### Tailwind CSS
+
+Customize `tailwind.config.js` for your design needs:
+
+### Next.js Config
+
+Modify `next.config.js` for advanced configurations:
+
+module.exports = {
+images: {
+domains: ['res.cloudinary.com'],
+},
+}
+
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+
+## 📝 License
+
+This project is licensed under the MIT License.
+
+## 👤 Author
+
+**Your Name**
+- GitHub: [@yourusername](https://github.com/yourusername)
+- Email: your.email@example.com
+
+## 🙏 Acknowledgments
+
+- Next.js Documentation
+- Tailwind CSS
+- Cloudinary
+- Stripe
+- All contributors and testers
+
+---
+
+**Note**: Replace placeholder links and credentials with actual values before submission.
+```
