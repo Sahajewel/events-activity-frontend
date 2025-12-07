@@ -142,6 +142,11 @@ export default function CreateEventPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
+      <div className="bg-gradient-to-r from-primary to-purple-600 text-white py-16">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Create Event</h1>
+        </div>
+      </div>
       <main className="flex-1 bg-background">
         <div className="container mx-auto px-4 py-8">
           <Form {...form}>

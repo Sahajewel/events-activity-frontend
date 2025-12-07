@@ -74,7 +74,7 @@ export function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ৳{(stats?.stats.totalRevenue || 0).toLocaleString()}
+              ${(stats?.stats.totalRevenue || 0).toLocaleString()}
             </div>
           </CardContent>
         </Card>

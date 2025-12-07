@@ -296,5 +296,4 @@ This project is licensed under the MIT License.
 
 ---
 
-**Note**: Replace placeholder links and credentials with actual values before submission.
 ```

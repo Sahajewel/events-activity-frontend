@@ -49,3 +49,17 @@ export function useCreateReview() {
     },
   });
 }
+
+// hooks/useReviews.ts - Add new hook
+
+export function useUserReviewForEvent(eventId: string, userId: string) {
+  return useQuery({
+    queryKey: ["user-event-review", eventId, userId],
+    queryFn: async () => {
+      const response = await api.get(`/reviews/event/${eventId}`);
+      const reviews = response.data.data.reviews;
+      return reviews.find((r: any) => r.userId === userId);
+    },
+    enabled: !!eventId && !!userId,
+  });
+}

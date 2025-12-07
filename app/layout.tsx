@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: "EventHub - Connect Through Shared Experiences",
   description:
     "Find and join events with like-minded people. Never miss out on experiences because you don't have someone to go with.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

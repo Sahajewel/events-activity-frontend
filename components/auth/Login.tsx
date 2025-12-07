@@ -142,29 +142,6 @@ export default function Login() {
               </Link>
             </p>
           </div>
-
-          <div className="pt-6 border-t">
-            <p className="text-center text-sm text-muted-foreground mb-4">
-              Demo Credentials:
-            </p>
-            <div className="space-y-2 text-xs">
-              <div className="bg-muted p-3 rounded-lg">
-                <p className="font-medium mb-1">Admin:</p>
-                <p>Email: admin@events.com</p>
-                <p>Password: Admin@123</p>
-              </div>
-              <div className="bg-muted p-3 rounded-lg">
-                <p className="font-medium mb-1">Host:</p>
-                <p>Email: host@events.com</p>
-                <p>Password: Host@123</p>
-              </div>
-              <div className="bg-muted p-3 rounded-lg">
-                <p className="font-medium mb-1">User:</p>
-                <p>Email: user1@events.com</p>
-                <p>Password: User@123</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 

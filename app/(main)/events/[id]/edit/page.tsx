@@ -164,7 +164,7 @@ export default function EditEventPage() {
 
   const removeImage = () => {
     setImageFile(null);
-    setImagePreview(event?.imageUrl || null);
+    setImagePreview(null);
   };
 
   const onSubmit = async (data: EventFormValues) => {

@@ -204,7 +204,7 @@ export function PaymentDialog({
             <p className="text-sm text-muted-foreground">Total Amount</p>       
                {" "}
             <p className="text-4xl font-bold text-primary">
-                            ৳{amount.toLocaleString()}           {" "}
+                            ${amount.toLocaleString()}           {" "}
             </p>
                      {" "}
           </div>
