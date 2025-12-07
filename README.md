@@ -264,7 +264,6 @@ Customize `tailwind.config.js` for your design needs:
 
 Modify `next.config.js` for advanced configurations:
 
-module.exports = {
 images: {
 domains: ['res.cloudinary.com'],
 },
@@ -284,8 +283,8 @@ This project is licensed under the MIT License.
 ## 👤 Author
 
 **Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Email: your.email@example.com
+- GitHub: [@Sahajewel](https://github.com/Sahajewel)
+- Email: your.jewelsaha072@gmail.com
 
 ## 🙏 Acknowledgments
 
