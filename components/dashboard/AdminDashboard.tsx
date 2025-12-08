@@ -3,11 +3,30 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Calendar, TrendingUp, Activity, UserCheck } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Users,
+  Calendar,
+  TrendingUp,
+  Activity,
+  UserCheck,
+  Settings,
+  Shield,
+  Eye,
+  Trash2,
+  CheckCircle,
+} from "lucide-react";
 import { api } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export function AdminDashboard() {
   const queryClient = useQueryClient();
@@ -30,200 +49,191 @@ export function AdminDashboard() {
     },
   });
 
-  // ৩. রিকোয়েস্ট অ্যাপ্রুভ করার মিউটেশন
-  const approveMutation = useMutation({
-    mutationFn: async (requestId: string) => {
-      const response = await api.patch(
-        `/admin/host-requests/${requestId}/approve`
-      );
-      return response.data;
-    },
-    onSuccess: () => {
-      // ডেটা রিফ্রেশ করা
-      queryClient.invalidateQueries({ queryKey: ["host-requests"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
-      toast.success("User successfully promoted to HOST!");
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to approve request");
-    },
-  });
-
   if (statsLoading || requestsLoading) {
     return <LoadingSpinner className="py-20" />;
   }
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
-        <p className="text-muted-foreground">
-          Platform overview and management
-        </p>
+      <div className="flex justify-between items-end">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Admin Control Center</h1>
+          <p className="text-muted-foreground">
+            Comprehensive platform management and insights
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2">
+            <Settings className="h-4 w-4" /> System Settings
+          </Button>
+        </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.stats.totalUsers || 0}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Hosts</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.stats.totalHosts || 0}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Events</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.stats.totalEvents || 0}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${(stats?.stats.totalRevenue || 0).toLocaleString()}
-            </div>
-          </CardContent>
-        </Card>
+      {/* Stats Grid - Visual Highlights */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          {
+            title: "Total Users",
+            val: stats?.stats.totalUsers,
+            icon: Users,
+            color: "text-blue-500",
+          },
+          {
+            title: "Total Hosts",
+            val: stats?.stats.totalHosts,
+            icon: Shield,
+            color: "text-purple-500",
+          },
+          {
+            title: "Total Events",
+            val: stats?.stats.totalEvents,
+            icon: Calendar,
+            color: "text-green-500",
+          },
+          {
+            title: "Total Revenue",
+            val: `$${stats?.stats.totalRevenue.toLocaleString()}`,
+            icon: TrendingUp,
+            color: "text-orange-500",
+          },
+        ].map((item, i) => (
+          <Card key={i} className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                {item.title}
+              </CardTitle>
+              <item.icon className={`h-4 w-4 ${item.color}`} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{item.val || 0}</div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Host Requests Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <UserCheck className="h-5 w-5 text-primary" />
-            <CardTitle>Host Membership Requests</CardTitle>
+      {/* 🚀 SMART Management Section with Tabs */}
+      <Tabs defaultValue="management" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsTrigger value="management">Management</TabsTrigger>
+          <TabsTrigger value="requests">Host Requests</TabsTrigger>
+          <TabsTrigger value="activities">Recent Activity</TabsTrigger>
+        </TabsList>
+
+        {/* --- Management Tab --- */}
+        <TabsContent value="management" className="space-y-6 mt-6">
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="hover:border-primary/50 cursor-pointer transition-all">
+              <CardHeader>
+                <Users className="h-8 w-8 text-blue-500 mb-2" />
+                <CardTitle>Manage Users</CardTitle>
+                <CardDescription>
+                  Verify, suspend, or update platform members.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full" variant="outline" asChild>
+                  <Link href="/admin/users">Open User Manager</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:border-primary/50 cursor-pointer transition-all">
+              <CardHeader>
+                <Shield className="h-8 w-8 text-purple-500 mb-2" />
+                <CardTitle>Manage Hosts</CardTitle>
+                <CardDescription>
+                  Oversee event hosts and hosting permissions.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full" variant="outline" asChild>
+                  <Link href="/admin/hosts">View All Hosts</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:border-primary/50 cursor-pointer transition-all">
+              <CardHeader>
+                <Calendar className="h-8 w-8 text-green-500 mb-2" />
+                <CardTitle>Manage Events</CardTitle>
+                <CardDescription>
+                  Review and moderate all platform events.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full" variant="outline" asChild>
+                  <Link href="/admin/events">Event Control</Link>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
-        </CardHeader>
-        <CardContent>
-          {requests && requests.length > 0 ? (
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold">User Details</th>
-                    <th className="px-4 py-3 font-semibold">User Message</th>
-                    <th className="px-4 py-3 font-semibold text-right">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {requests.map((req: any) => (
-                    <tr key={req.id}>
-                      <td className="px-4 py-3">
-                        <div className="font-medium">{req.user.fullName}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {req.user.email}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 italic text-muted-foreground">
-                        {req.message || "No message provided"}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Button
-                          size="sm"
-                          onClick={() => approveMutation.mutate(req.id)}
-                          disabled={approveMutation.isPending}
-                        >
-                          {approveMutation.isPending
-                            ? "Approving..."
-                            : "Make Host"}
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-10 text-muted-foreground bg-muted/20 rounded-lg">
-              No pending host requests found.
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </TabsContent>
 
-      {/* Recent Activity */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Bookings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {stats?.recentBookings?.map((booking: any) => (
-                <div
-                  key={booking.id}
-                  className="flex justify-between items-center border-b pb-2"
-                >
-                  <div>
-                    <p className="font-medium">{booking.user.fullName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {booking.event.name}
-                    </p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(booking.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* --- Host Requests Tab --- */}
+        <TabsContent value="requests" className="mt-6">
+          {/* আপনার আগের হোস্ট রিকোয়েস্ট টেবিল কোডটি এখানে বসিয়ে দিন */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Pending Memberships</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center py-10 text-muted-foreground">
+              {requests?.length > 0
+                ? "You have pending requests to approve."
+                : "No pending requests."}
+              <br />
+              <Button className="mt-4" variant="link">
+                Go to Requests Page
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Events</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {stats?.recentEvents?.map((event: any) => (
-                <div
-                  key={event.id}
-                  className="flex justify-between items-center border-b pb-2"
-                >
-                  <div>
-                    <p className="font-medium">{event.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      by {event.host.fullName}
-                    </p>
+        {/* --- Activity Tab --- */}
+        <TabsContent value="activities" className="mt-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Bookings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {stats?.recentBookings.map((b: any) => (
+                  <div
+                    key={b.id}
+                    className="flex justify-between items-center border-b pb-2"
+                  >
+                    <span>
+                      {b.user.fullName} booked <b>{b.event.name}</b>
+                    </span>
+                    <span className="text-xs">
+                      {new Date(b.createdAt).toLocaleDateString()}
+                    </span>
                   </div>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(event.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                ))}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>New Events</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {stats?.recentEvents.map((e: any) => (
+                  <div
+                    key={e.id}
+                    className="flex justify-between items-center border-b pb-2"
+                  >
+                    <span>
+                      {e.name} by {e.host.fullName}
+                    </span>
+                    <span className="text-xs">
+                      {new Date(e.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

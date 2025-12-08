@@ -16,6 +16,7 @@ import {
   LayoutDashboard,
   BookMarked,
   Star,
+  UserCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,11 +65,11 @@ export function Navbar() {
         { href: "/my-events", label: "My Events", icon: Calendar },
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
         { href: "/reviews", label: "My Reviews", icon: Star },
-        { href: "/become-host", label: "Become a host", icon: Star },
       ]
     : [
         { href: "/", label: "Home", icon: Home },
         { href: "/events", label: "Explore Events", icon: Search },
+        { href: "/become-host", label: "Become a host", icon: UserCheck },
         { href: "/reviews", label: "My Reviews", icon: Star },
       ];
 
