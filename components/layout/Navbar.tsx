@@ -64,6 +64,7 @@ export function Navbar() {
         { href: "/my-events", label: "My Events", icon: Calendar },
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
         { href: "/reviews", label: "My Reviews", icon: Star },
+        { href: "/become-host", label: "Become a host", icon: Star },
       ]
     : [
         { href: "/", label: "Home", icon: Home },
