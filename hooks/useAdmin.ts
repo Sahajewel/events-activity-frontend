@@ -33,16 +33,24 @@ export function useUpdateUserRole() {
   });
 }
 
+// আপনার useAdmin.ts ফাইলের মধ্যে (বা যেখানে Hook টি আছে)
+
 export function useToggleUserStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (userId: string) => {
+      // এই endpoint টি ঠিক আছে
       const response = await api.patch(`/admin/users/${userId}/toggle-status`);
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      // 💡 ফিক্স: queryKey অবশ্যই UserManagementPage এর queryKey এর সাথে মিলতে হবে।
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+
+      // HostManagementPage এর জন্যও ইনভ্যালিডেট করে দিতে পারেন (যদি Admin Status চেঞ্জ করে)
+      queryClient.invalidateQueries({ queryKey: ["admin-hosts"] });
+
       toast.success("User status updated!");
     },
     onError: (error: any) => {
@@ -51,23 +59,32 @@ export function useToggleUserStatus() {
   });
 }
 
-export function useDeleteUser() {
+export const useDeleteUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      const response = await api.delete(`/admin/users/${userId}`);
-      return response.data;
+      // Assuming your API endpoint for delete is DELETE /users/:id
+      const res = await api.delete(`/admin/users/${userId}`);
+      return res.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("User deleted successfully!");
+    onSuccess: (data) => {
+      // 💡 ১. মূল ফিক্স: queryKey ইনভ্যালিডেট করা।
+      // User এবং Host Management, দুটো পেজ থেকেই ইউজার ডিলিট হতে পারে।
+      // তাই আমরা নিশ্চিত করব যে দুটো টেবিলই রিফ্রেশ হয়।
+
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-hosts"] });
+
+      // ডিলিট সফল হলে টোস্ট মেসেজ
+      toast.success(data.message || "User deleted successfully.");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to delete user");
+    onError: (error) => {
+      // Error handling
+      toast.error(error.message || "Failed to delete user.");
     },
   });
-}
+};
 // useHostRequests ফেচ করার জন্য
 export function useHostRequests() {
   return useQuery({

@@ -58,10 +58,13 @@ export function Navbar() {
     ? [
         { href: "/", label: "Home", icon: Home },
         { href: "/events", label: "Explore Events", icon: Search },
-        ...(user?.role === "HOST" || user?.role === "ADMIN"
+        ...(user?.role === "HOST"
           ? [{ href: "/events/create", label: "Create Event", icon: Plus }]
           : []),
-        { href: "/my-bookings", label: "My Bookings", icon: BookMarked },
+        ...(user?.role === "USER"
+          ? [{ href: "/my-bookings", label: "My Bookings", icon: BookMarked }]
+          : []),
+
         { href: "/my-events", label: "My Events", icon: Calendar },
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
         { href: "/reviews", label: "My Reviews", icon: Star },

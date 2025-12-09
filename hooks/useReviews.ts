@@ -63,3 +63,35 @@ export function useUserReviewForEvent(eventId: string, userId: string) {
     enabled: !!eventId && !!userId,
   });
 }
+// src/hooks/useReview.ts (বা যেখানে আপনার অন্যান্য রিভিউ Hook গুলো আছে)
+
+// ধরে নিচ্ছি, API রেসপন্সে review, user, এবং event data আছে
+interface TestimonialReview {
+  id: string;
+  comment: string;
+  rating: number;
+  user: {
+    fullName: string;
+    profileImage: string;
+    // আপনি চাইলে এখানে ইউজারের role (Host/User) ম্যানুয়ালি সেট করতে পারেন বা ব্যাকএন্ড থেকে আনতে পারেন
+  };
+  event: {
+    name: string;
+  };
+}
+
+// এই Hook টি হোম পেজের জন্য ব্যবহৃত হবে
+export const useGetPublicTestimonials = () => {
+  return useQuery({
+    // queryKey টি নিশ্চিত করতে হবে যেন এটি সব public review-এর জন্য কাজ করে
+    queryKey: ["publicTestimonials"],
+    queryFn: async () => {
+      // 🌐 API Endpoint: GET /api/reviews/public-testimonials
+      // এই রুটটি আপনাকে ব্যাকএন্ডে তৈরি করতে হবে, যা র্যান্ডম বা সেরা ৩-৫ টি রিভিউ দেবে।
+      const res = await api.get("/reviews/public-testimonials");
+      // ধরে নিচ্ছি res.data.data তে TestimonialReview[] অ্যারে আছে
+      return res.data.data as TestimonialReview[];
+    },
+    staleTime: 1000 * 60 * 5, // ৫ মিনিটের জন্য ক্যাশ করবে
+  });
+};

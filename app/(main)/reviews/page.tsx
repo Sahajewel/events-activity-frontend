@@ -1,28 +1,32 @@
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// app/reviews/page.tsx - Update koro
-
 "use client";
 
-import { useAuth } from "@/hooks/useAuth";
-import { useUserBookings } from "@/hooks/useEvents";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+// Component & Hook Imports
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserBookings } from "@/hooks/useEvents"; // ধরে নিচ্ছি এটি user এর বুকিং ফেচ করে
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ReviewDialog } from "@/components/reviews/ReviewDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Star, CheckCircle } from "lucide-react";
+
+// Utility Imports
 import { formatDate } from "@/lib/utils";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function ReviewsPage() {
   const router = useRouter();
   const { user, isAuthenticated, loading } = useAuth();
   const { data: bookings, isLoading } = useUserBookings();
 
+  // Authentication Guard
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push("/login");
@@ -30,11 +34,9 @@ export default function ReviewsPage() {
   }, [loading, isAuthenticated, router]);
 
   // ✅ Filter COMPLETED bookings
+  // নিশ্চিত করুন যে আপনার useUserBookings hook এ event.reviews সহ সব ডেটা আসছে
   const completedBookings =
     bookings?.filter((booking: any) => booking.status === "COMPLETED") || [];
-
-  console.log("All bookings:", bookings);
-  console.log("Completed bookings:", completedBookings);
 
   if (loading || isLoading) {
     return (
@@ -54,6 +56,7 @@ export default function ReviewsPage() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1 bg-background">
+        {/* Header Section */}
         <div className="bg-gradient-to-r from-primary to-purple-600 text-white py-12">
           <div className="container mx-auto px-4">
             <h1 className="text-4xl font-bold mb-2">My Reviews</h1>
@@ -63,6 +66,7 @@ export default function ReviewsPage() {
           </div>
         </div>
 
+        {/* Content Section */}
         <div className="container mx-auto px-4 py-8">
           {completedBookings.length === 0 ? (
             <div className="text-center py-12">
@@ -78,10 +82,12 @@ export default function ReviewsPage() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {completedBookings.map((booking: any) => {
-                // ✅ Check if user already reviewed this event
-                const hasReviewed = booking.event?.reviews?.some(
+                // ✅ ১. ইউজার যে রিভিউটি দিয়েছে তা খুঁজে বের করা
+                const userReview = booking.event?.reviews?.find(
                   (review: any) => review.userId === user?.id
                 );
+
+                const hasReviewed = !!userReview;
 
                 return (
                   <Card
@@ -114,6 +120,34 @@ export default function ReviewsPage() {
                           </span>
                         </div>
                       </div>
+
+                      {/* ⭐ NEW: User's Own Review Display (if reviewed) */}
+                      {hasReviewed && userReview && (
+                        <div className="bg-green-50/50 border border-green-200 p-3 rounded-lg space-y-2">
+                          <div className="flex items-center gap-2">
+                            {/* রেটিং স্টার ডিসপ্লে */}
+                            {Array.from({ length: 5 }, (_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-4 w-4 ${
+                                  i < userReview.rating
+                                    ? "fill-green-600 text-green-600"
+                                    : "text-gray-300"
+                                }`}
+                              />
+                            ))}
+                            <span className="font-semibold text-green-700 ml-1">
+                              {userReview.rating} / 5
+                            </span>
+                          </div>
+                          {userReview.comment && (
+                            <p className="text-sm text-gray-700 italic border-l-2 border-green-300 pl-3">
+                              "{userReview.comment}"
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {/* -------------------------------------------------- */}
 
                       <div className="flex gap-2">
                         <Link
