@@ -137,3 +137,15 @@ export function useCreateHostRequest() {
     },
   });
 }
+export function usePublicStats() {
+  return useQuery({
+    queryKey: ["public-stats"],
+    queryFn: async () => {
+      // 🌐 No auth needed - public endpoint
+      const response = await api.get("/stats/public");
+      return response.data.data;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    refetchOnWindowFocus: false, // Don't refetch on tab switch
+  });
+}
