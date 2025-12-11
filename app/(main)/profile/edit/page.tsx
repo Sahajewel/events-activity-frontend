@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription, // FormDescription import করা হয়েছে
   FormField,
   FormItem,
   FormLabel,
@@ -22,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Upload, X, User } from "lucide-react";
+import { Loader2, Upload, X, Heart } from "lucide-react"; // Heart আইকন যোগ করা হলো
 import { toast } from "sonner";
 import { getInitials } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ const profileSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
   bio: z.string().optional(),
   location: z.string().optional(),
+  // interests এখন স্ট্রিং হিসেবে আসবে (যা কমা দিয়ে সেপারেট করা)
   interests: z.string().optional(),
 });
 
@@ -37,7 +39,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export default function EditProfilePage() {
   const router = useRouter();
-  const { user, isAuthenticated, loading } = useAuth(); // loading add korsi!
+  const { user, isAuthenticated, loading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export default function EditProfilePage() {
       fullName: "",
       bio: "",
       location: "",
-      interests: "",
+      interests: "", // Interests এর জন্য ডিফল্ট ভ্যালু
     },
   });
 
@@ -60,14 +62,15 @@ export default function EditProfilePage() {
     }
   }, [loading, isAuthenticated, router]);
 
-  // User load hole form fill kor
+  // User load হলে form fill করা
   useEffect(() => {
     if (user) {
       form.reset({
         fullName: user.fullName || "",
         bio: user.bio || "",
         location: user.location || "",
-        // interests: user.interests?.join(", ") || "",
+        // ⭐ 1. Interests লোড করা: অ্যারে থেকে কমা-সেপারেটেড স্ট্রিং-এ কনভার্ট করা
+        interests: user.interests?.join(", ") || "",
       });
       setImagePreview(user.profileImage || null);
     }
@@ -102,12 +105,17 @@ export default function EditProfilePage() {
     if (data.location?.trim())
       formData.append("location", data.location.trim());
 
+    // ⭐ 3. Interests প্রসেস করা: স্ট্রিং থেকে অ্যারে তৈরি করে JSON.stringify করে পাঠানো
     if (data.interests?.trim()) {
       const interests = data.interests
         .split(",")
         .map((i) => i.trim())
-        .filter(Boolean);
+        .filter(Boolean); // খালি স্ট্রিং বাদ দেওয়া
+      // যেহেতু FormData ব্যবহার করছেন, অ্যারে বা অবজেক্টকে JSON.stringify করে পাঠাতে হয়
       formData.append("interests", JSON.stringify(interests));
+    } else {
+      // যদি ইউজার খালি করে দেয়, তবে একটি খালি অ্যারে পাঠানো
+      formData.append("interests", "[]");
     }
 
     if (imageFile) {
@@ -115,8 +123,9 @@ export default function EditProfilePage() {
     }
 
     try {
-      const res = await api.patch("/users/profile", formData); // header delete korsi!
+      const res = await api.patch("/users/profile", formData);
 
+      // Local storage-এ ইউজার ডেটা আপডেট করা
       localStorage.setItem("user", JSON.stringify(res.data.data));
       toast.success("Profile updated successfully!");
       router.push(`/profile/${user.id}`);
@@ -242,20 +251,32 @@ export default function EditProfilePage() {
                     )}
                   />
 
-                  {/* <FormField
+                  {/* ⭐ NEW: Interests Field */}
+                  <FormField
                     control={form.control}
                     name="interests"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Interests</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          <Heart className="h-4 w-4" />
+                          Interests
+                        </FormLabel>
                         <FormControl>
-                          <Input placeholder="Music, Sports, Tech" {...field} />
+                          <Input
+                            placeholder="Music, Sports, Tech, Food"
+                            {...field}
+                          />
                         </FormControl>
+                        <FormDescription>
+                          Enter your interests, separated by a comma. (e.g.,
+                          Music, Food, Tech)
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
-                  /> */}
+                  />
 
+                  {/* Role Display */}
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Role:</span>
                     <Badge variant="secondary">{user.role}</Badge>
@@ -275,7 +296,14 @@ export default function EditProfilePage() {
                       disabled={isSubmitting}
                       className="flex-1"
                     >
-                      {isSubmitting ? <>Saving...</> : <>Save Changes</>}
+                      {isSubmitting ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Saving...
+                        </span>
+                      ) : (
+                        <>Save Changes</>
+                      )}
                     </Button>
                   </div>
                 </form>

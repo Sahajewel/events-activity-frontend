@@ -6,9 +6,18 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Loader2, X } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  Loader2,
+  X,
+  Eye,
+  Star,
+  CheckCircle2,
+  AlertCircle,
+  CreditCard,
+} from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
-// import { useCancelBooking } from "@/hooks/useBookings";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,8 +33,6 @@ import { ReviewDialog } from "@/components/reviews/ReviewDialog";
 import { PaymentDialog } from "@/components/payment/PaymentDialog";
 import { Booking, useCancelBooking } from "@/hooks/useBooking";
 
-// import type { Booking } from "@/hooks/useBooking";
-
 interface BookingCardProps {
   booking: Booking;
 }
@@ -33,11 +40,48 @@ interface BookingCardProps {
 export function BookingCard({ booking }: BookingCardProps) {
   const cancelBooking = useCancelBooking();
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+
   const event = booking.event!;
   const isPast = new Date(event.date) < new Date();
   const isCompleted = booking.status === "COMPLETED";
   const canCancel = booking.status === "CONFIRMED" && !isPast;
   const needsPayment = booking.status === "PENDING";
+
+  const statusConfig = {
+    CONFIRMED: {
+      variant: "default" as const,
+      icon: CheckCircle2,
+      label: "Confirmed",
+      color: "text-green-600",
+      bgColor: "bg-green-500/10",
+    },
+    PENDING: {
+      variant: "secondary" as const,
+      icon: AlertCircle,
+      label: "Payment Pending",
+      color: "text-orange-600",
+      bgColor: "bg-orange-500/10",
+    },
+    CANCELLED: {
+      variant: "destructive" as const,
+      icon: X,
+      label: "Cancelled",
+      color: "text-red-600",
+      bgColor: "bg-red-500/10",
+    },
+    COMPLETED: {
+      variant: "outline" as const,
+      icon: CheckCircle2,
+      label: "Completed",
+      color: "text-gray-600",
+      bgColor: "bg-gray-500/10",
+    },
+  };
+
+  const status =
+    statusConfig[booking.status as keyof typeof statusConfig] ||
+    statusConfig.CONFIRMED;
+  const StatusIcon = status.icon;
 
   const handleCancel = async () => {
     await cancelBooking.mutateAsync(booking.id);
@@ -45,75 +89,114 @@ export function BookingCard({ booking }: BookingCardProps) {
 
   return (
     <>
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardContent className="p-6">
-          <div className="flex gap-6 flex-col md:flex-row">
+      <Card className="group hover:shadow-2xl hover:border-primary/50 transition-all duration-300 overflow-hidden">
+        <CardContent className="p-0">
+          <div className="flex flex-col md:flex-row">
             {/* Event Image */}
-            <div className="relative w-full md:w-32 h-32 flex-shrink-0 rounded-lg overflow-hidden">
+            <div className="relative w-full md:w-48 h-48 md:h-auto flex-shrink-0 overflow-hidden">
               {event.imageUrl ? (
                 <Image
                   src={event.imageUrl}
                   alt={event.name}
                   fill
-                  className="object-cover"
+                  className="object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
-                  <Calendar className="h-8 w-8 text-muted-foreground" />
+                <div className="w-full h-full bg-gradient-to-br from-primary/20 via-purple-500/20 to-pink-500/20 flex items-center justify-center">
+                  <Calendar className="h-12 w-12 md:h-16 md:w-16 text-primary/40" />
                 </div>
               )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent md:bg-gradient-to-r" />
+
+              {/* Category Badge */}
+              <div className="absolute top-3 left-3">
+                <Badge
+                  variant="secondary"
+                  className="backdrop-blur-sm bg-white/90 text-foreground shadow-lg"
+                >
+                  {event.type}
+                </Badge>
+              </div>
             </div>
 
             {/* Event Details */}
-            <div className="flex-1 space-y-3">
-              <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div>
+            <div className="flex-1 p-4 sm:p-5 md:p-6 space-y-4">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
                   <Link href={`/events/${event.id}`}>
-                    <h3 className="text-xl font-semibold hover:text-primary transition-colors">
+                    <h3 className="text-lg sm:text-xl font-bold group-hover:text-primary transition-colors line-clamp-2 mb-2">
                       {event.name}
                     </h3>
                   </Link>
-                  <Badge variant="outline" className="mt-1">
-                    {event.type}
-                  </Badge>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {event?.description}
+                  </p>
                 </div>
+
                 <Badge
-                  variant={
-                    booking.status === "CONFIRMED"
-                      ? "default"
-                      : booking.status === "CANCELLED"
-                      ? "destructive"
-                      : booking.status === "PENDING"
-                      ? "secondary"
-                      : "outline"
-                  }
+                  variant={status.variant}
+                  className="gap-1.5 self-start whitespace-nowrap"
                 >
-                  {booking.status}
+                  <StatusIcon className="h-3.5 w-3.5" />
+                  {status.label}
                 </Badge>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>{formatDate(event.date)}</span>
+              {/* Event Info Grid */}
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                    <Calendar className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Date & Time</p>
+                    <p className="text-sm font-medium truncate">
+                      {formatDate(event.date)}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  <span className="truncate">{event.location}</span>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                    <MapPin className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Location</p>
+                    <p className="text-sm font-medium truncate">
+                      {event.location}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t flex-wrap gap-3">
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Amount Paid: </span>
-                  <span className="font-semibold">
-                    {formatCurrency(booking.amount)}
-                  </span>
+              {/* Amount & Actions */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <CreditCard className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Amount Paid</p>
+                    <p className="text-xl font-bold text-primary">
+                      {formatCurrency(booking.amount)}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex gap-2 flex-wrap">
-                  <Link href={`/events/${event.id}`}>
-                    <Button variant="outline" size="sm">
-                      View Details
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                  <Link
+                    href={`/events/${event.id}`}
+                    className="flex-1 sm:flex-none"
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 w-full"
+                    >
+                      <Eye className="h-4 w-4" />
+                      Details
                     </Button>
                   </Link>
 
@@ -122,29 +205,51 @@ export function BookingCard({ booking }: BookingCardProps) {
                       variant="default"
                       size="sm"
                       onClick={() => setShowPaymentDialog(true)}
+                      className="gap-2 flex-1 sm:flex-none shadow-lg"
                     >
+                      <CreditCard className="h-4 w-4" />
                       Pay Now
                     </Button>
                   )}
 
                   {isCompleted && (
-                    <ReviewDialog eventId={event.id} hostId={event.hostId} />
+                    <div className="flex-1 sm:flex-none">
+                      <ReviewDialog eventId={event.id} hostId={event.hostId} />
+                    </div>
                   )}
 
                   {canCancel && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">
-                          <X className="h-4 w-4 mr-1" />
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="gap-2 flex-1 sm:flex-none"
+                        >
+                          <X className="h-4 w-4" />
                           Cancel
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Cancel Booking?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to cancel this booking? This
-                            action cannot be undone.
+                          <AlertDialogTitle className="flex items-center gap-2">
+                            <AlertCircle className="h-5 w-5 text-destructive" />
+                            Cancel Booking?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription className="space-y-2">
+                            <p>Are you sure you want to cancel this booking?</p>
+                            <div className="p-3 bg-muted rounded-lg text-sm">
+                              <p className="font-medium text-foreground mb-1">
+                                {event.name}
+                              </p>
+                              <p className="text-muted-foreground">
+                                {formatDate(event.date)}
+                              </p>
+                            </div>
+                            <p className="text-xs">
+                              This action cannot be undone and you may lose your
+                              spot.
+                            </p>
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

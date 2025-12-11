@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,23 +17,22 @@ import {
   BookMarked,
   Star,
   UserCheck,
+  Settings,
+  Bell,
+  Crown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
-/**
- * Local helper to derive initials from a full name.
- * Examples:
- *  - "John Doe" -> "JD"
- *  - "Alice" -> "AL"
- */
 const getInitials = (fullName: string) => {
   if (!fullName) return "";
   const parts = fullName.trim().split(/\s+/);
@@ -47,195 +46,396 @@ export function Navbar() {
   const { user, logout, isAuthenticated } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // 🎯 Detect scroll for navbar style change
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // 🔒 Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   const handleLogout = async () => {
     await logout();
     router.push("/");
   };
 
+  // 📱 Navigation links based on auth and role
   const navLinks = isAuthenticated
     ? [
         { href: "/", label: "Home", icon: Home },
-        { href: "/events", label: "Explore Events", icon: Search },
+
+        ...(user?.role === "USER" || user?.role === "HOST"
+          ? [{ href: "/events", label: "Events", icon: Search }]
+          : []),
         ...(user?.role === "HOST"
-          ? [{ href: "/events/create", label: "Create Event", icon: Plus }]
+          ? [{ href: "/events/create", label: "Create", icon: Plus }]
           : []),
         ...(user?.role === "USER"
-          ? [{ href: "/my-bookings", label: "My Bookings", icon: BookMarked }]
+          ? [{ href: "/my-bookings", label: "Bookings", icon: BookMarked }]
           : []),
-
-        { href: "/my-events", label: "My Events", icon: Calendar },
-        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { href: "/reviews", label: "My Reviews", icon: Star },
+        ...(user?.role === "USER" || user?.role === "HOST"
+          ? [{ href: "/my-events", label: "My Events", icon: Calendar }]
+          : []),
+        ,
       ]
     : [
         { href: "/", label: "Home", icon: Home },
-        { href: "/events", label: "Explore Events", icon: Search },
-        { href: "/become-host", label: "Become a host", icon: UserCheck },
-        { href: "/reviews", label: "My Reviews", icon: Star },
+        { href: "/events", label: "Events", icon: Search },
+        { href: "/become-host", label: "Become Host", icon: UserCheck },
       ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Calendar className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold bg-linear-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-              EventHub
-            </span>
-          </Link>
+    <>
+      <nav
+        className={`
+        sticky top-0 z-50 w-full border-b transition-all duration-300
+        ${
+          scrolled
+            ? "bg-background/80 backdrop-blur-xl shadow-md"
+            : "bg-background/95 backdrop-blur-sm"
+        }
+      `}
+      >
+        <div className="container mx-auto px-4">
+          <div className="flex h-16 md:h-18 items-center justify-between">
+            {/* Logo */}
+            <Link
+              href="/"
+              className="flex items-center space-x-2 group transition-transform hover:scale-105"
+            >
+              <div className="relative">
+                <Calendar className="h-7 w-7 md:h-8 md:w-8 text-primary transition-transform group-hover:rotate-12" />
+                {user?.role === "ADMIN" && (
+                  <Crown className="absolute -top-1 -right-1 h-3 w-3 text-yellow-500" />
+                )}
+              </div>
+              <span className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                EventHub
+              </span>
+            </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              return (
-                <Link key={link.href} href={link.href}>
-                  <Button
-                    variant={pathname === link.href ? "default" : "ghost"}
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Icon className="h-4 w-4" />
-                    {link.label}
-                  </Button>
-                </Link>
-              );
-            })}
-          </div>
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-1">
+              {navLinks.map((link) => {
+                const Icon = link?.icon;
+                const isActive = pathname === link?.href;
+                return (
+                  <Link key={link?.href} href={link?.href}>
+                    <Button
+                      variant={isActive ? "default" : "ghost"}
+                      size="sm"
+                      className={`
+                        flex items-center gap-2 transition-all
+                        ${isActive ? "shadow-md" : "hover:bg-primary/10"}
+                      `}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span className="hidden xl:inline">{link?.label}</span>
+                    </Button>
+                  </Link>
+                );
+              })}
+            </div>
 
-          {/* Right Section */}
-          <div className="flex items-center gap-4">
-            {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+            {/* Right Section */}
+            <div className="flex items-center gap-2 md:gap-3">
+              {isAuthenticated ? (
+                <>
+                  {/* Notifications (Optional) */}
                   <Button
                     variant="ghost"
-                    className="relative h-10 w-10 rounded-full"
+                    size="icon"
+                    className="relative hidden md:flex"
                   >
-                    <Avatar>
-                      <AvatarImage
-                        src={user?.profileImage}
-                        alt={user?.fullName}
-                      />
-                      <AvatarFallback>
-                        {getInitials(user?.fullName || "")}
-                      </AvatarFallback>
-                    </Avatar>
+                    <Bell className="h-5 w-5" />
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <div className="flex items-center gap-2 p-2">
-                    <Avatar>
-                      <AvatarImage
-                        src={user?.profileImage}
-                        alt={user?.fullName}
-                      />
-                      <AvatarFallback>
-                        {getInitials(user?.fullName || "")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <p className="text-sm font-medium">{user?.fullName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {user?.email}
-                      </p>
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href={`/profile/${user?.id}`}
-                      className="cursor-pointer"
-                    >
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="cursor-pointer">
-                      <LayoutDashboard className="mr-2 h-4 w-4" />
-                      Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={handleLogout}
-                    className="cursor-pointer"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="hidden md:flex items-center gap-2">
-                <Link href="/login">
-                  <Button variant="ghost" size="sm">
-                    Login
-                  </Button>
-                </Link>
-                <Link href="/register">
-                  <Button size="sm">Sign Up</Button>
-                </Link>
-              </div>
-            )}
 
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6" />
+                  {/* User Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="relative h-9 w-9 md:h-10 md:w-10 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all"
+                      >
+                        <Avatar className="h-9 w-9 md:h-10 md:w-10">
+                          <AvatarImage
+                            src={user?.profileImage}
+                            alt={user?.fullName}
+                          />
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-purple-600 text-white font-semibold">
+                            {getInitials(user?.fullName || "")}
+                          </AvatarFallback>
+                        </Avatar>
+                        {user?.role === "HOST" && (
+                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full border-2 border-background flex items-center justify-center">
+                            <Star className="h-3 w-3 text-white fill-white" />
+                          </div>
+                        )}
+                        {user?.role === "ADMIN" && (
+                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full border-2 border-background flex items-center justify-center">
+                            <Crown className="h-3 w-3 text-white fill-white" />
+                          </div>
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-64">
+                      <DropdownMenuLabel>
+                        <div className="flex items-center gap-3 py-2">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage
+                              src={user?.profileImage}
+                              alt={user?.fullName}
+                            />
+                            <AvatarFallback className="bg-gradient-to-br from-primary to-purple-600 text-white font-semibold text-lg">
+                              {getInitials(user?.fullName || "")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col flex-1 min-w-0">
+                            <p className="text-sm font-semibold truncate">
+                              {user?.fullName}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {user?.email}
+                            </p>
+                            <Badge
+                              variant="secondary"
+                              className="w-fit mt-1 text-xs"
+                            >
+                              {user?.role}
+                            </Badge>
+                          </div>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href={`/profile/${user?.id}`}
+                          className="cursor-pointer"
+                        >
+                          <User className="mr-2 h-4 w-4" />
+                          My Profile
+                        </Link>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard" className="cursor-pointer">
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+
+                      {/* <DropdownMenuItem asChild>
+                        <Link href="/settings" className="cursor-pointer">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Settings
+                        </Link>
+                      </DropdownMenuItem> */}
+
+                      <DropdownMenuSeparator />
+
+                      <DropdownMenuItem
+                        onClick={handleLogout}
+                        className="cursor-pointer text-red-600 focus:text-red-600"
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
               ) : (
-                <Menu className="h-6 w-6" />
+                <div className="hidden md:flex items-center gap-2">
+                  <Link href="/login">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="hover:bg-primary/10"
+                    >
+                      Login
+                    </Button>
+                  </Link>
+                  <Link href="/register">
+                    <Button
+                      size="sm"
+                      className="shadow-md hover:shadow-lg transition-shadow"
+                    >
+                      Sign Up
+                    </Button>
+                  </Link>
+                </div>
               )}
-            </Button>
+
+              {/* Mobile Menu Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
+      </nav>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 space-y-2">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Button
-                    variant={pathname === link.href ? "default" : "ghost"}
-                    className="w-full justify-start gap-2"
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <div
+            className="fixed right-0 top-16 bottom-0 w-full max-w-sm bg-background border-l shadow-2xl overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 space-y-6">
+              {/* User Info in Mobile Menu */}
+              {isAuthenticated && (
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-purple-600/10 border border-primary/20">
+                  <Avatar className="h-12 w-12 ring-2 ring-primary/20">
+                    <AvatarImage
+                      src={user?.profileImage}
+                      alt={user?.fullName}
+                    />
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-purple-600 text-white font-semibold">
+                      {getInitials(user?.fullName || "")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">
+                      {user?.fullName}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {user?.email}
+                    </p>
+                    <Badge variant="secondary" className="mt-1 text-xs">
+                      {user?.role}
+                    </Badge>
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation Links */}
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-3 mb-2">
+                  Navigation
+                </p>
+                {navLinks.map((link) => {
+                  const Icon = link.icon;
+                  const isActive = pathname === link.href;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Button
+                        variant={isActive ? "default" : "ghost"}
+                        className={`
+                          w-full justify-start gap-3 h-12 text-base
+                          ${isActive ? "shadow-md" : ""}
+                        `}
+                      >
+                        <Icon className="h-5 w-5" />
+                        {link.label}
+                      </Button>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {/* Quick Actions */}
+              {isAuthenticated && (
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-3 mb-2">
+                    Quick Actions
+                  </p>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
                   >
-                    <Icon className="h-4 w-4" />
-                    {link.label}
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-3 h-12"
+                    >
+                      <LayoutDashboard className="h-5 w-5" />
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <Link
+                    href="/reviews"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-3 h-12"
+                    >
+                      <Star className="h-5 w-5" />
+                      My Reviews
+                    </Button>
+                  </Link>
+                  <Link
+                    href="/settings"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-3 h-12"
+                    >
+                      <Settings className="h-5 w-5" />
+                      Settings
+                    </Button>
+                  </Link>
+                </div>
+              )}
+
+              {/* Auth Buttons (Mobile) */}
+              {!isAuthenticated ? (
+                <div className="space-y-2 pt-4 border-t">
+                  <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full h-12">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button className="w-full h-12 shadow-md">Sign Up</Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="pt-4 border-t">
+                  <Button
+                    variant="ghost"
+                    onClick={handleLogout}
+                    className="w-full justify-start gap-3 h-12 text-red-600 hover:text-red-600 hover:bg-red-50"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    Logout
                   </Button>
-                </Link>
-              );
-            })}
-            {!isAuthenticated && (
-              <>
-                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
-                    Login
-                  </Button>
-                </Link>
-                <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
-                  <Button className="w-full justify-start">Sign Up</Button>
-                </Link>
-              </>
-            )}
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
-    </nav>
+        </div>
+      )}
+    </>
   );
 }

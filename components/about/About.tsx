@@ -110,30 +110,6 @@ export default function About() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-r from-indigo-600 to-purple-700 text-white">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
-            <div>
-              <div className="text-5xl font-bold mb-2">10K+</div>
-              <p className="text-indigo-100">Active Users</p>
-            </div>
-            <div>
-              <div className="text-5xl font-bold mb-2">3,247</div>
-              <p className="text-indigo-100">Events Created</p>
-            </div>
-            <div>
-              <div className="text-5xl font-bold mb-2">89%</div>
-              <p className="text-indigo-100">Say They Made New Friends</p>
-            </div>
-            <div>
-              <div className="text-5xl font-bold mb-2">
-                4.8 <Star className="inline w-6 h-6" />
-              </div>
-              <p className="text-indigo-100">Average Host Rating</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Values */}
       <section className="py-20 bg-gray-50">

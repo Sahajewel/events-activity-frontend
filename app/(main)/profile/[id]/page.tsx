@@ -3,7 +3,7 @@
 
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { User } from "@/types";
+import { User } from "@/types"; // ধরে নিচ্ছি আপনার User টাইপটি আছে
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -13,10 +13,10 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Calendar, Star, Edit } from "lucide-react";
-import { getInitials } from "@/lib/utils";
+import { getInitials } from "@/lib/utils"; // ধরে নিচ্ছি এই ইউটিলিটি ফাংশনটি আছে
 import { api, useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
-import { EventCard } from "@/components/events/EventsCards";
+import { EventCard } from "@/components/events/EventsCards"; // ধরে নিচ্ছি এই কম্পোনেন্টটি আছে
 
 export default function ProfilePage() {
   const params = useParams();
@@ -61,11 +61,25 @@ export default function ProfilePage() {
     );
   }
 
+  // ⭐ কন্ডিশনাল রেন্ডারিং এর জন্য লজিক
+  const isAdmin = profile.role === "ADMIN";
+  const isHost = profile.role === "HOST";
+  const isUser = profile.role === "USER";
+
+  const shouldShowHostedTab = isHost;
+  const shouldShowAttendedTab = isHost || isUser;
+
+  // যদি Hosted Tab না থাকে, তবে Attended Tab কে ডিফল্ট হিসেবে সেট করতে হবে
+  const defaultTab = shouldShowHostedTab ? "hosted" : "attended";
+  const totalTabs =
+    (shouldShowHostedTab ? 1 : 0) + (shouldShowAttendedTab ? 1 : 0);
+  const tabsGridCols = totalTabs > 0 ? `grid-cols-${totalTabs}` : "grid-cols-1";
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1 bg-background">
-        {/* Profile Header - FIXED gradient */}
+        {/* Profile Header */}
         <div className="bg-gradient-to-r from-primary to-purple-600 text-white py-16">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row items-center gap-6">
@@ -225,52 +239,84 @@ export default function ProfilePage() {
                 )}
             </div>
 
-            {/* Main Content */}
+            {/* Main Content Area - Conditional Tabs */}
             <div className="lg:col-span-2">
-              <Tabs defaultValue="hosted" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="hosted">Hosted Events</TabsTrigger>
-                  <TabsTrigger value="attended">Attended Events</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="hosted" className="space-y-6">
-                  {profile.hostedEvents && profile.hostedEvents.length > 0 ? (
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {profile.hostedEvents.map((event: any) => (
-                        <EventCard key={event.id} event={event} />
-                      ))}
-                    </div>
-                  ) : (
-                    <Card>
-                      <CardContent className="text-center py-12">
-                        <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                        <p className="text-muted-foreground">
-                          No hosted events yet
-                        </p>
-                      </CardContent>
-                    </Card>
+              {/* 🛑 ADMIN হলে কোনো ট্যাব দেখাবে না */}
+              {!isAdmin && (
+                <Tabs defaultValue={defaultTab} className="space-y-6">
+                  {/* ⭐ TabsList: HOST হলে 2 ট্যাব, USER হলে 1 ট্যাব */}
+                  {totalTabs > 0 && (
+                    <TabsList className={`grid w-full ${tabsGridCols}`}>
+                      {shouldShowHostedTab && (
+                        <TabsTrigger value="hosted">Hosted Events</TabsTrigger>
+                      )}
+                      {shouldShowAttendedTab && (
+                        <TabsTrigger value="attended">
+                          Attended Events
+                        </TabsTrigger>
+                      )}
+                    </TabsList>
                   )}
-                </TabsContent>
 
-                <TabsContent value="attended" className="space-y-6">
-                  {profile.bookings && profile.bookings.length > 0 ? (
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {profile.bookings.map((booking: any) => (
-                        <EventCard key={booking.id} event={booking.event} />
-                      ))}
-                    </div>
-                  ) : (
-                    <Card>
-                      <CardContent className="text-center py-12">
-                        <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                        <p className="text-muted-foreground">
-                          No attended events yet
-                        </p>
-                      </CardContent>
-                    </Card>
+                  {/* ⭐ Hosted TabsContent - শুধু HOST এর জন্য */}
+                  {shouldShowHostedTab && (
+                    <TabsContent value="hosted" className="space-y-6">
+                      {profile.hostedEvents &&
+                      profile.hostedEvents.length > 0 ? (
+                        <div className="grid md:grid-cols-2 gap-6">
+                          {profile.hostedEvents.map((event: any) => (
+                            <EventCard key={event.id} event={event} />
+                          ))}
+                        </div>
+                      ) : (
+                        <Card>
+                          <CardContent className="text-center py-12">
+                            <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                            <p className="text-muted-foreground">
+                              No hosted events yet
+                            </p>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </TabsContent>
                   )}
-                </TabsContent>
-              </Tabs>
+
+                  {/* ⭐ Attended TabsContent - HOST ও USER উভয়ের জন্য */}
+                  {shouldShowAttendedTab && (
+                    <TabsContent value="attended" className="space-y-6">
+                      {profile.bookings && profile.bookings.length > 0 ? (
+                        <div className="grid md:grid-cols-2 gap-6">
+                          {profile.bookings.map((booking: any) => (
+                            // এখানে booking.event রেন্ডার করা হচ্ছে
+                            <EventCard key={booking.id} event={booking.event} />
+                          ))}
+                        </div>
+                      ) : (
+                        <Card>
+                          <CardContent className="text-center py-12">
+                            <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                            <p className="text-muted-foreground">
+                              No attended events yet
+                            </p>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </TabsContent>
+                  )}
+                </Tabs>
+              )}
+
+              {/* ⭐ ADMIN Message: যদি কোনো ট্যাব না দেখানোর সিদ্ধান্ত নেওয়া হয় */}
+              {isAdmin && (
+                <Card className="mt-8">
+                  <CardContent className="text-center py-12">
+                    <p className="text-lg font-semibold text-muted-foreground">
+                      This is an administrative profile. Event history is not
+                      displayed here.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         </div>
