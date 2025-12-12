@@ -145,14 +145,12 @@ export function AdminDashboard() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="gap-2" size="sm">
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Settings</span>
-            </Button>
-            <Button variant="outline" className="gap-2" size="sm">
-              <Activity className="h-4 w-4" />
-              <span className="hidden sm:inline">Activity Log</span>
-            </Button>
+            <Link href="/settings">
+              <Button variant="outline" className="gap-2" size="sm">
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Settings</span>
+              </Button>
+            </Link>
           </div>
         </div>
 

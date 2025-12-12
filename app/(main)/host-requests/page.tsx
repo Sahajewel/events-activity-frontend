@@ -180,14 +180,14 @@ export default function HostRequestsPage() {
                               )}
                               Approve
                             </Button>
-                            <Button
+                            {/* <Button
                               size="sm"
                               variant="destructive" // Changed to destructive for emphasis
                               onClick={() => handleReject(request.id)}
                               disabled={isProcessing}
                             >
                               <X className="h-4 w-4" />
-                            </Button>
+                            </Button> */}
                           </TableCell>
                         </TableRow>
                       );

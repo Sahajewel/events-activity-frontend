@@ -77,7 +77,9 @@ export function Navbar() {
   const navLinks = isAuthenticated
     ? [
         { href: "/", label: "Home", icon: Home },
-
+        ...(user?.role === "ADMIN"
+          ? [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }]
+          : []),
         ...(user?.role === "USER" || user?.role === "HOST"
           ? [{ href: "/events", label: "Events", icon: Search }]
           : []),
@@ -90,12 +92,17 @@ export function Navbar() {
         ...(user?.role === "USER" || user?.role === "HOST"
           ? [{ href: "/my-events", label: "My Events", icon: Calendar }]
           : []),
-        { href: "/become-host", label: "Become Host", icon: UserCheck },
+        ...(user?.role === "USER"
+          ? [{ href: "/become-host", label: "Become Host", icon: UserCheck }]
+          : []),
       ]
     : [
         { href: "/", label: "Home", icon: Home },
         { href: "/events", label: "Events", icon: Search },
         { href: "/become-host", label: "Become Host", icon: UserCheck },
+        ...(user?.role === "USER"
+          ? [{ href: "/become-host", label: "Become Host", icon: UserCheck }]
+          : []),
       ];
 
   return (

@@ -120,7 +120,7 @@ export default function HostManagementPage() {
                     </TableCell>
                     <TableCell className="text-right space-x-2">
                       {/* Demote Button */}
-                      <Button
+                      {/* <Button
                         variant="outline"
                         size="sm"
                         title="Demote to User"
@@ -131,7 +131,7 @@ export default function HostManagementPage() {
                         disabled={updateRole.isPending}
                       >
                         <UserMinus className="h-4 w-4 mr-1" /> Demote
-                      </Button>
+                      </Button> */}
 
                       {/* Status Toggle */}
                       <Button
