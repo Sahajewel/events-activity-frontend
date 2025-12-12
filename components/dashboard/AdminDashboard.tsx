@@ -298,14 +298,16 @@ export function AdminDashboard() {
                           </p>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
+                          <Link href="/host-requests">
+                            <Button size="sm" variant="outline">
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                          </Link>
                         </div>
                       </div>
                     ))}
-                    <Link href="/admin/host-requests">
+                    <Link href="/host-requests">
                       <Button variant="outline" className="w-full mt-2">
                         View All Requests
                         <ArrowRight className="h-4 w-4 ml-2" />

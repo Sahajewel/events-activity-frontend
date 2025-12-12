@@ -136,8 +136,9 @@ export const useAuth = () => {
       const res = await api.get("/auth/me");
       setUser(res.data.data || res.data);
       setIsAuthenticated(true);
-    } catch (err) {
-      // টোকেন অবৈধ হলে বা এরর হলে লগআউট
+    } catch (err: any) {
+      console.error("auth/me fetch failed status:", err.response?.status);
+
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       setUser(null);

@@ -1,3 +1,4 @@
+// src/components/layout/Navbar.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -33,6 +34,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
+// ইউজার নামের আদ্যাক্ষর বের করার ফাংশন
 const getInitials = (fullName: string) => {
   if (!fullName) return "";
   const parts = fullName.trim().split(/\s+/);
@@ -49,7 +51,7 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // 🎯 Detect scroll for navbar style change
+  // 🎯 Scroll Detection Effect
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -58,10 +60,13 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 🔒 Close mobile menu on route change
+  // ❌ যে useEffect টি Cascading Render তৈরি করত, তা মুছে ফেলা হয়েছে।
+  // কারণ মোবাইল লিঙ্কে ক্লিক করার সময়ই মেনু বন্ধ হচ্ছে।
+  /*
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
+  */
 
   const handleLogout = async () => {
     await logout();
@@ -85,7 +90,7 @@ export function Navbar() {
         ...(user?.role === "USER" || user?.role === "HOST"
           ? [{ href: "/my-events", label: "My Events", icon: Calendar }]
           : []),
-        ,
+        { href: "/become-host", label: "Become Host", icon: UserCheck },
       ]
     : [
         { href: "/", label: "Home", icon: Home },
@@ -97,13 +102,13 @@ export function Navbar() {
     <>
       <nav
         className={`
-        sticky top-0 z-50 w-full border-b transition-all duration-300
-        ${
-          scrolled
-            ? "bg-background/80 backdrop-blur-xl shadow-md"
-            : "bg-background/95 backdrop-blur-sm"
-        }
-      `}
+          sticky top-0 z-50 w-full border-b transition-all duration-300
+          ${
+            scrolled
+              ? "bg-background/80 backdrop-blur-xl shadow-md"
+              : "bg-background/95 backdrop-blur-sm"
+          }
+        `}
       >
         <div className="container mx-auto px-4">
           <div className="flex h-16 md:h-18 items-center justify-between">
@@ -343,6 +348,7 @@ export function Navbar() {
                     <Link
                       key={link.href}
                       href={link.href}
+                      // ✅ লিঙ্ক ক্লিক হলে মেনু বন্ধ করার জন্য এটিই যথেষ্ট
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <Button

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -12,7 +13,6 @@ import {
   Loader2,
   X,
   Eye,
-  Star,
   CheckCircle2,
   AlertCircle,
   CreditCard,
@@ -130,7 +130,7 @@ export function BookingCard({ booking }: BookingCardProps) {
                     </h3>
                   </Link>
                   <p className="text-sm text-muted-foreground line-clamp-2">
-                    {event?.description}
+                    {(event as any)?.description}
                   </p>
                 </div>
 

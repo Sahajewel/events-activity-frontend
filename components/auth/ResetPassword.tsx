@@ -1,12 +1,10 @@
-// src/components/auth/ResetPasswordForm.tsx
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useRouter, useSearchParams } from "next/navigation"; // 💡 নতুন ইম্পোর্ট
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,15 +29,24 @@ const formSchema = z.object({
 type ResetPasswordFormValues = z.infer<typeof formSchema>;
 
 export default function ResetPasswordForm() {
+  // 1. সমস্ত Hooks কম্পোনেন্টের শুরুতে কল করা হয়েছে (কোনো শর্তের আগে)
   const [isPending, setIsPending] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams(); // 💡 URL থেকে টোকেন ও ইমেল নেওয়ার জন্য
+  const searchParams = useSearchParams();
 
-  // 1. URL থেকে token এবং email সংগ্রহ
+  const form = useForm<ResetPasswordFormValues>({
+    // ✅ এই Hook টিকে উপরে সরানো হয়েছে
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      newPassword: "",
+    },
+  });
+
+  // 2. ডেটা সংগ্রহ (Hooks কল করার পর)
   const token = searchParams.get("token");
   const email = searchParams.get("email");
 
-  // 2. টোকেন বা ইমেল না থাকলে এরর হ্যান্ডলিং
+  // 3. টোকেন বা ইমেল না থাকলে এরর হ্যান্ডলিং (Hooks কল করার পর Early Return বৈধ)
   if (!token || !email) {
     return (
       <div className="text-center text-red-600">
@@ -48,26 +55,19 @@ export default function ResetPasswordForm() {
     );
   }
 
-  const form = useForm<ResetPasswordFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      newPassword: "",
-    },
-  });
-
   const onSubmit = async (values: ResetPasswordFormValues) => {
     setIsPending(true);
 
     try {
-      // 3. API কল: টোকেন, ইমেল এবং নতুন পাসওয়ার্ড বডিতে পাঠানো
+      // API কল: টোকেন, ইমেল এবং নতুন পাসওয়ার্ড বডিতে পাঠানো
       await api.post("/auth/reset-password", {
-        token: token, // URL থেকে নেওয়া টোকেন
-        email: email, // URL থেকে নেওয়া ইমেল
+        token: token,
+        email: email,
         newPassword: values.newPassword,
       });
 
       toast.success("Password reset successful. Please log in.");
-      router.push("/login"); // সফল হলে লগইন পেজে রিডাইরেক্ট
+      router.push("/login");
     } catch (error: any) {
       const errorMsg =
         error.response?.data?.message ||
