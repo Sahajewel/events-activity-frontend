@@ -171,3 +171,13 @@ export interface CreateReviewData {
   rating: number;
   comment?: string;
 }
+export interface ValidatedCoupon {
+  coupon: {
+    code: string;
+    discount: number;
+    type: "PERCENTAGE" | "FIXED";
+  };
+  subtotal: number;
+  discountAmount: number;
+  finalAmount: number;
+}

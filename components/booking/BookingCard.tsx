@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   AlertCircle,
   CreditCard,
+  Users, // Users icon ta add kora hoyeche
 } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import {
@@ -107,8 +108,6 @@ export function BookingCard({ booking }: BookingCardProps) {
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent md:bg-gradient-to-r" />
-
-              {/* Category Badge */}
               <div className="absolute top-3 left-3">
                 <Badge
                   variant="secondary"
@@ -121,7 +120,6 @@ export function BookingCard({ booking }: BookingCardProps) {
 
             {/* Event Details */}
             <div className="flex-1 p-4 sm:p-5 md:p-6 space-y-4">
-              {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <Link href={`/events/${event.id}`}>
@@ -133,7 +131,6 @@ export function BookingCard({ booking }: BookingCardProps) {
                     {(event as any)?.description}
                   </p>
                 </div>
-
                 <Badge
                   variant={status.variant}
                   className="gap-1.5 self-start whitespace-nowrap"
@@ -143,20 +140,21 @@ export function BookingCard({ booking }: BookingCardProps) {
                 </Badge>
               </div>
 
-              {/* Event Info Grid */}
-              <div className="grid sm:grid-cols-2 gap-3">
+              {/* Event Info Grid - UPDATED with Quantity */}
+              <div className="grid sm:grid-cols-3 gap-3">
+                {" "}
+                {/* col-2 theke col-3 kora hoyeche */}
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                   <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
                     <Calendar className="h-5 w-5 text-blue-500" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground">Date & Time</p>
+                    <p className="text-xs text-muted-foreground">Date</p>
                     <p className="text-sm font-medium truncate">
                       {formatDate(event.date)}
                     </p>
                   </div>
                 </div>
-
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                   <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
                     <MapPin className="h-5 w-5 text-green-500" />
@@ -165,6 +163,19 @@ export function BookingCard({ booking }: BookingCardProps) {
                     <p className="text-xs text-muted-foreground">Location</p>
                     <p className="text-sm font-medium truncate">
                       {event.location}
+                    </p>
+                  </div>
+                </div>
+                {/* ✅ Quantity (Number of Persons) - NEW ADDITION */}
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Booking for</p>
+                    <p className="text-sm font-bold text-primary truncate">
+                      {booking.quantity || 1}{" "}
+                      {(booking.quantity || 1) > 1 ? "Persons" : "Person"}
                     </p>
                   </div>
                 </div>
@@ -177,7 +188,7 @@ export function BookingCard({ booking }: BookingCardProps) {
                     <CreditCard className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Amount Paid</p>
+                    <p className="text-xs text-muted-foreground">Total Paid</p>
                     <p className="text-xl font-bold text-primary">
                       {formatCurrency(booking.amount)}
                     </p>
@@ -195,11 +206,9 @@ export function BookingCard({ booking }: BookingCardProps) {
                       size="sm"
                       className="gap-2 w-full"
                     >
-                      <Eye className="h-4 w-4" />
-                      Details
+                      <Eye className="h-4 w-4" /> Details
                     </Button>
                   </Link>
-
                   {needsPayment && (
                     <Button
                       variant="default"
@@ -207,17 +216,14 @@ export function BookingCard({ booking }: BookingCardProps) {
                       onClick={() => setShowPaymentDialog(true)}
                       className="gap-2 flex-1 sm:flex-none shadow-lg"
                     >
-                      <CreditCard className="h-4 w-4" />
-                      Pay Now
+                      <CreditCard className="h-4 w-4" /> Pay Now
                     </Button>
                   )}
-
                   {isCompleted && (
                     <div className="flex-1 sm:flex-none">
                       <ReviewDialog eventId={event.id} hostId={event.hostId} />
                     </div>
                   )}
-
                   {canCancel && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -226,18 +232,21 @@ export function BookingCard({ booking }: BookingCardProps) {
                           size="sm"
                           className="gap-2 flex-1 sm:flex-none"
                         >
-                          <X className="h-4 w-4" />
-                          Cancel
+                          <X className="h-4 w-4" /> Cancel
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
+                        {/* AlertDialog content remains the same */}
                         <AlertDialogHeader>
                           <AlertDialogTitle className="flex items-center gap-2">
-                            <AlertCircle className="h-5 w-5 text-destructive" />
+                            <AlertCircle className="h-5 w-5 text-destructive" />{" "}
                             Cancel Booking?
                           </AlertDialogTitle>
                           <AlertDialogDescription className="space-y-2">
-                            <p>Are you sure you want to cancel this booking?</p>
+                            <p>
+                              Are you sure you want to cancel this booking for{" "}
+                              {booking.quantity || 1} person(s)?
+                            </p>
                             <div className="p-3 bg-muted rounded-lg text-sm">
                               <p className="font-medium text-foreground mb-1">
                                 {event.name}
@@ -257,16 +266,11 @@ export function BookingCard({ booking }: BookingCardProps) {
                           <AlertDialogAction
                             onClick={handleCancel}
                             disabled={cancelBooking.isPending}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="bg-destructive hover:bg-destructive/90 text-white"
                           >
-                            {cancelBooking.isPending ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Cancelling...
-                              </>
-                            ) : (
-                              "Cancel Booking"
-                            )}
+                            {cancelBooking.isPending
+                              ? "Cancelling..."
+                              : "Cancel Booking"}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -279,6 +283,7 @@ export function BookingCard({ booking }: BookingCardProps) {
         </CardContent>
       </Card>
 
+      {/* Payment Dialog remains the same */}
       {needsPayment && (
         <PaymentDialog
           bookingId={booking.id}

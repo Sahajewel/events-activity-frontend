@@ -21,20 +21,20 @@ import {
   Calendar,
   MapPin,
   Users,
-  DollarSign,
   Star,
   ArrowLeft,
   Clock,
-  CheckCircle2,
-  AlertCircle,
-  Edit,
   Share2,
   Heart,
   Info,
+  MapPinned,
+  User,
+  Sparkles,
 } from "lucide-react";
-import { formatDateTime, formatCurrency, getInitials } from "@/lib/utils";
+import { formatDateTime, getInitials } from "@/lib/utils";
 import { toast } from "sonner";
 import { useCreateBooking } from "@/hooks/useBooking";
+import { BookingForm } from "@/components/booking/BookingForm";
 
 export default function EventDetailsPage() {
   const params = useParams();
@@ -46,15 +46,21 @@ export default function EventDetailsPage() {
   const [joining, setJoining] = useState(false);
 
   const bookedCount =
-    event?.bookings?.filter((b: any) => b.status === "CONFIRMED").length || 0;
+    event?.bookings
+      ?.filter((b: any) => b.status === "CONFIRMED" || b.status === "PENDING")
+      .reduce((sum: number, b: any) => sum + (b.quantity || 1), 0) || 0;
+
   const spotsLeft = event ? event.maxParticipants - bookedCount : 0;
   const isFull = event?.status === "FULL" || spotsLeft <= 0;
   const isHost = user?.id === event?.hostId;
   const userBooking = event?.bookings?.find((b: any) => b.userId === user?.id);
   const hasJoined = !!userBooking;
   const canReview = userBooking?.status === "CONFIRMED";
+  const fillPercentage = event
+    ? (bookedCount / event.maxParticipants) * 100
+    : 0;
 
-  const handleJoinEvent = async () => {
+  const handleJoinEvent = async (quantity: number, couponCode?: string) => {
     if (!isAuthenticated) {
       toast.error("Please login to join this event");
       router.push("/login");
@@ -63,8 +69,16 @@ export default function EventDetailsPage() {
 
     setJoining(true);
     try {
-      await createBooking.mutateAsync(eventId);
-      toast.success("You have successfully joined this event! 🎉");
+      const bookingData: any = { eventId, quantity };
+      if (couponCode) bookingData.couponCode = couponCode;
+
+      await createBooking.mutateAsync(bookingData);
+
+      toast.success(
+        `Successfully booked ${quantity} ${
+          quantity === 1 ? "spot" : "spots"
+        }! 🎉`
+      );
       setTimeout(() => router.push("/my-bookings"), 1500);
     } catch (error: any) {
       setJoining(false);
@@ -90,7 +104,7 @@ export default function EventDetailsPage() {
           <Card className="max-w-md w-full">
             <CardContent className="text-center py-12">
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="h-8 w-8 text-muted-foreground" />
+                <Calendar className="h-8 w-8 text-muted-foreground" />
               </div>
               <h2 className="text-2xl font-bold mb-2">Event Not Found</h2>
               <p className="text-muted-foreground mb-6">
@@ -108,35 +122,35 @@ export default function EventDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30">
-      <Navbar />
+    <div>
+      <Navbar></Navbar>
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-muted/20">
+        {/* Hero Image Section */}
+        <div className="relative h-[300px] md:h-[400px] lg:h-[500px] w-full overflow-hidden">
+          {event.imageUrl ? (
+            <Image
+              src={event.imageUrl}
+              alt={event.name}
+              fill
+              className="object-cover"
+              priority
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-primary/20 via-purple-500/20 to-pink-500/20 flex items-center justify-center">
+              <Calendar className="h-24 w-24 md:h-32 md:w-32 text-primary/40" />
+            </div>
+          )}
 
-      {/* Hero Image Section */}
-      <div className="relative h-64 md:h-96 lg:h-[500px] w-full">
-        {event.imageUrl ? (
-          <Image
-            src={event.imageUrl}
-            alt={event.name}
-            fill
-            className="object-cover"
-            priority
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/20 via-purple-500/20 to-pink-500/20 flex items-center justify-center">
-            <Calendar className="h-24 w-24 md:h-32 md:w-32 text-primary/50" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
 
-        {/* Header Content Overlay */}
-        <div className="absolute inset-0 flex flex-col justify-between p-4 md:p-8">
-          {/* Top Bar */}
-          <div className="flex items-start justify-between">
+          {/* Top Actions Bar */}
+          <div className="absolute top-0 inset-x-0 p-4 md:p-6 flex items-center justify-between z-10">
             <Button
               variant="secondary"
               size="sm"
               onClick={() => router.back()}
-              className="backdrop-blur-sm bg-white/90 hover:bg-white shadow-lg"
+              className="backdrop-blur-md bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-900 shadow-lg"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
@@ -145,14 +159,14 @@ export default function EventDetailsPage() {
               <Button
                 variant="secondary"
                 size="icon"
-                className="backdrop-blur-sm bg-white/90 hover:bg-white shadow-lg"
+                className="backdrop-blur-md bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-900 shadow-lg"
               >
                 <Share2 className="h-4 w-4" />
               </Button>
               <Button
                 variant="secondary"
                 size="icon"
-                className="backdrop-blur-sm bg-white/90 hover:bg-white shadow-lg"
+                className="backdrop-blur-md bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-900 shadow-lg"
               >
                 <Heart className="h-4 w-4" />
               </Button>
@@ -160,312 +174,299 @@ export default function EventDetailsPage() {
           </div>
 
           {/* Bottom Content */}
-          <div className="space-y-3">
-            <div className="flex flex-wrap gap-2">
-              <Badge className="bg-white/90 text-foreground backdrop-blur-sm">
-                {event.type}
-              </Badge>
-              {isFull && (
-                <Badge variant="destructive" className="backdrop-blur-sm">
-                  Event Full
+          <div className="absolute bottom-0 inset-x-0 p-4 md:p-8 space-y-4">
+            <div className="container mx-auto max-w-7xl">
+              {/* Badges */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                <Badge className="bg-white/95 dark:bg-gray-900/95 text-foreground backdrop-blur-sm text-sm px-3 py-1">
+                  {event.type}
                 </Badge>
-              )}
-              {event.joiningFee === 0 && (
-                <Badge className="bg-green-500 text-white backdrop-blur-sm">
-                  Free Event
-                </Badge>
-              )}
+                {isFull && (
+                  <Badge
+                    variant="destructive"
+                    className="backdrop-blur-sm text-sm px-3 py-1"
+                  >
+                    Event Full
+                  </Badge>
+                )}
+                {event.joiningFee === 0 && (
+                  <Badge className="bg-green-500 text-white backdrop-blur-sm text-sm px-3 py-1">
+                    Free Event
+                  </Badge>
+                )}
+                {fillPercentage >= 80 && !isFull && (
+                  <Badge className="bg-orange-500 text-white backdrop-blur-sm text-sm px-3 py-1 animate-pulse">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    Filling Fast
+                  </Badge>
+                )}
+              </div>
+
+              {/* Title */}
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-2xl leading-tight">
+                {event.name}
+              </h1>
+
+              {/* Quick Stats */}
+              <div className="flex flex-wrap gap-4 mt-4 text-white/90">
+                <div className="flex items-center gap-2 backdrop-blur-sm bg-black/20 px-3 py-1.5 rounded-full">
+                  <Calendar className="h-4 w-4" />
+                  <span className="text-sm font-medium">
+                    {new Date(event.date).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 backdrop-blur-sm bg-black/20 px-3 py-1.5 rounded-full">
+                  <Users className="h-4 w-4" />
+                  <span className="text-sm font-medium">
+                    {bookedCount}/{event.maxParticipants} Joined
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 backdrop-blur-sm bg-black/20 px-3 py-1.5 rounded-full">
+                  <MapPinned className="h-4 w-4" />
+                  <span className="text-sm font-medium">{event.location}</span>
+                </div>
+              </div>
             </div>
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white drop-shadow-lg">
-              {event.name}
-            </h1>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Content - 2 columns */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Quick Info Cards */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                    <Calendar className="h-6 w-6 text-blue-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground">Date</p>
-                    <p className="text-sm font-medium truncate">
-                      {new Date(event.date).toLocaleDateString()}
-                    </p>
-                  </div>
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Left Content - 2 columns */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Quick Info Grid */}
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                      <Calendar className="h-6 w-6 text-blue-500 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground font-medium">
+                        Date
+                      </p>
+                      <p className="text-sm font-bold truncate">
+                        {new Date(event.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-green-500/10 dark:bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                      <Clock className="h-6 w-6 text-green-500 dark:text-green-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground font-medium">
+                        Time
+                      </p>
+                      <p className="text-sm font-bold">
+                        {new Date(event.date).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-purple-500/10 dark:bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                      <Users className="h-6 w-6 text-purple-500 dark:text-purple-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground font-medium">
+                        Attendees
+                      </p>
+                      <p className="text-sm font-bold">
+                        {bookedCount}/{event.maxParticipants}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                      <Star className="h-6 w-6 text-orange-500 dark:text-orange-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground font-medium">
+                        Spots Left
+                      </p>
+                      <p className="text-sm font-bold">{spotsLeft}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* About Section */}
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Info className="h-5 w-5 text-primary" />
+                    About This Event
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                    {event.description}
+                  </p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center">
-                    <Clock className="h-6 w-6 text-green-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground">Time</p>
-                    <p className="text-sm font-medium">
-                      {new Date(event.date).toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                    <Users className="h-6 w-6 text-purple-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground">Attendees</p>
-                    <p className="text-sm font-medium">
-                      {bookedCount}/{event.maxParticipants}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                    <DollarSign className="h-6 w-6 text-orange-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground">Price</p>
-                    <p className="text-sm font-medium">
-                      {event.joiningFee === 0
-                        ? "Free"
-                        : formatCurrency(event.joiningFee)}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* About Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Info className="h-5 w-5 text-primary" />
-                  About This Event
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                  {event.description}
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Event Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Event Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
-                  <MapPin className="h-5 w-5 text-primary mt-0.5" />
-                  <div className="flex-1">
-                    <p className="font-medium mb-1">Location</p>
-                    <p className="text-sm text-muted-foreground">
-                      {event.location}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
-                  <Calendar className="h-5 w-5 text-primary mt-0.5" />
-                  <div className="flex-1">
-                    <p className="font-medium mb-1">Date & Time</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDateTime(event.date)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
-                  <Users className="h-5 w-5 text-primary mt-0.5" />
-                  <div className="flex-1">
-                    <p className="font-medium mb-1">Participants</p>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-background rounded-full h-2">
-                        <div
-                          className="bg-primary h-2 rounded-full transition-all"
-                          style={{
-                            width: `${
-                              (bookedCount / event.maxParticipants) * 100
-                            }%`,
-                          }}
-                        />
-                      </div>
-                      <span className="text-sm text-muted-foreground whitespace-nowrap">
-                        {bookedCount} / {event.maxParticipants}
-                      </span>
+              {/* Event Details Card */}
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle>Event Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Date & Time */}
+                  <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 rounded-xl border border-blue-100 dark:border-blue-900/50">
+                    <div className="w-10 h-10 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                      <Calendar className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold mb-1 text-foreground">
+                        Date & Time
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatDateTime(event.date)}
+                      </p>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Host Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Meet Your Host</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Link href={`/profile/${event.host.id}`}>
-                  <div className="flex items-center gap-4 p-4 hover:bg-muted/50 rounded-lg transition-colors">
-                    <Avatar className="h-16 w-16 ring-2 ring-primary/20">
-                      <AvatarImage
-                        src={event.host.profileImage}
-                        alt={event.host.fullName}
-                      />
-                      <AvatarFallback className="text-lg font-semibold">
-                        {getInitials(event.host.fullName)}
-                      </AvatarFallback>
-                    </Avatar>
+                  {/* Location */}
+                  <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-xl border border-green-100 dark:border-green-900/50">
+                    <div className="w-10 h-10 rounded-lg bg-green-500/10 dark:bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="h-5 w-5 text-green-500 dark:text-green-400" />
+                    </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-lg">
-                        {event.host.fullName}
+                      <p className="font-semibold mb-1 text-foreground">
+                        Location
                       </p>
-                      {event.host.averageRating && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                          <span className="text-sm font-medium">
-                            {event.host.averageRating}
+                      <p className="text-sm text-muted-foreground">
+                        {event.location}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Participants Progress */}
+                  <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-xl border border-purple-100 dark:border-purple-900/50">
+                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 dark:bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                      <Users className="h-5 w-5 text-purple-500 dark:text-purple-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold mb-2 text-foreground">
+                        Participants
+                      </p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            Progress
                           </span>
-                          <span className="text-sm text-muted-foreground">
-                            rating
+                          <span className="font-bold text-foreground">
+                            {bookedCount} / {event.maxParticipants}
                           </span>
                         </div>
-                      )}
-                    </div>
-                    <ArrowLeft className="h-5 w-5 text-muted-foreground rotate-180" />
-                  </div>
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Sidebar - Sticky */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-4 space-y-4">
-              <Card className="shadow-xl">
-                <CardContent className="p-6 space-y-6">
-                  {/* Price */}
-                  <div className="text-center p-4 bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-xl">
-                    <p className="text-4xl font-bold text-primary mb-1">
-                      {event.joiningFee === 0
-                        ? "Free"
-                        : formatCurrency(event.joiningFee)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">per person</p>
-                  </div>
-
-                  <Separator />
-
-                  {/* Status Info */}
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        Status
-                      </span>
-                      <Badge variant={isFull ? "destructive" : "default"}>
-                        {isFull ? "Full" : "Available"}
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        Spots Left
-                      </span>
-                      <span className="font-semibold text-lg">{spotsLeft}</span>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Action Buttons */}
-                  {isHost ? (
-                    <Link href={`/events/${event.id}/edit`}>
-                      <Button className="w-full h-12 gap-2 shadow-lg" size="lg">
-                        <Edit className="h-5 w-5" />
-                        Edit Event
-                      </Button>
-                    </Link>
-                  ) : hasJoined ? (
-                    <Button className="w-full h-12" disabled size="lg">
-                      <CheckCircle2 className="h-5 w-5 mr-2" />
-                      Already Joined
-                    </Button>
-                  ) : isFull ? (
-                    <Button
-                      className="w-full h-12"
-                      disabled
-                      variant="secondary"
-                      size="lg"
-                    >
-                      <AlertCircle className="h-5 w-5 mr-2" />
-                      Event Full
-                    </Button>
-                  ) : (
-                    <Button
-                      className="w-full h-12 gap-2 shadow-lg hover:shadow-xl transition-all"
-                      disabled={joining}
-                      onClick={handleJoinEvent}
-                      size="lg"
-                    >
-                      {joining ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                          Joining...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="h-5 w-5" />
-                          Join Event
-                        </>
-                      )}
-                    </Button>
-                  )}
-
-                  {/* Review Button */}
-                  {canReview && (
-                    <ReviewDialog eventId={event.id} hostId={event.hostId} />
-                  )}
-
-                  {/* Trust Badges */}
-                  <div className="pt-4 border-t space-y-2">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span>Secure booking</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span>Instant confirmation</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span>24/7 support</span>
+                        <div className="w-full bg-muted dark:bg-muted/50 rounded-full h-3 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              fillPercentage >= 90
+                                ? "bg-gradient-to-r from-red-500 to-red-600"
+                                : fillPercentage >= 70
+                                ? "bg-gradient-to-r from-orange-500 to-orange-600"
+                                : "bg-gradient-to-r from-purple-500 to-pink-600"
+                            }`}
+                            style={{
+                              width: `${Math.min(fillPercentage, 100)}%`,
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {spotsLeft > 0
+                            ? `${spotsLeft} spots remaining`
+                            : "Event is full"}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Host Section */}
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle>Meet Your Host</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Link href={`/profile/${event.host.id}`}>
+                    <div className="flex items-center gap-4 p-4 hover:bg-muted/50 rounded-xl transition-colors group">
+                      <Avatar className="h-16 w-16 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
+                        <AvatarImage
+                          src={event.host.profileImage}
+                          alt={event.host.fullName}
+                        />
+                        <AvatarFallback className="text-lg font-semibold bg-gradient-to-br from-primary to-purple-600 text-white">
+                          {getInitials(event.host.fullName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-semibold text-lg group-hover:text-primary transition-colors">
+                          {event.host.fullName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Event Organizer
+                        </p>
+                        {event.host.averageRating && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                            <span className="text-sm font-medium">
+                              {event.host.averageRating}
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              rating
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <ArrowLeft className="h-5 w-5 text-muted-foreground rotate-180 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Sidebar - Booking Form */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-4 space-y-4">
+                <BookingForm
+                  event={event}
+                  isHost={isHost}
+                  hasJoined={hasJoined}
+                  isFull={isFull}
+                  spotsLeft={spotsLeft}
+                  joining={joining}
+                  onJoinEvent={handleJoinEvent}
+                />
+
+                {/* Review Button */}
+                {canReview && (
+                  <ReviewDialog eventId={event.id} hostId={event.hostId} />
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      <Footer />
+      <Footer></Footer>
     </div>
   );
 }

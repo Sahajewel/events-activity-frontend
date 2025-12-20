@@ -73,7 +73,9 @@ export function Navbar() {
   const navLinks = isAuthenticated
     ? [
         { href: "/", label: "Home", icon: Home },
-        ...(user?.role === "ADMIN"
+        ...(user?.role === "ADMIN" ||
+        user?.role === "USER" ||
+        user?.role === "HOST"
           ? [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }]
           : []),
         ...(user?.role === "USER" || user?.role === "HOST"
