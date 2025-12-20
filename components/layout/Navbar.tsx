@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+
 import {
   Calendar,
   User,
@@ -21,6 +22,8 @@ import {
   Settings,
   Bell,
   Crown,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useTheme } from "../contexts/ThemeContexts";
 
 const getInitials = (fullName: string) => {
   if (!fullName) return "";
@@ -45,6 +49,7 @@ const getInitials = (fullName: string) => {
 
 export function Navbar() {
   const { user, logout, isAuthenticated } = useAuth();
+  const { theme, toggleTheme } = useTheme(); // Use theme context
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -91,9 +96,6 @@ export function Navbar() {
         { href: "/", label: "Home", icon: Home },
         { href: "/events", label: "Events", icon: Search },
         { href: "/become-host", label: "Become Host", icon: UserCheck },
-        ...(user?.role === "USER"
-          ? [{ href: "/become-host", label: "Become Host", icon: UserCheck }]
-          : []),
       ];
 
   return (
@@ -108,7 +110,7 @@ export function Navbar() {
           }
         `}
       >
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 md:h-18 items-center justify-between">
             {/* Logo */}
             <Link
@@ -151,16 +153,31 @@ export function Navbar() {
 
             {/* Right Section */}
             <div className="flex items-center gap-2 md:gap-3">
+              {/* Dark Mode Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                className="hidden md:flex hover:bg-primary/10 transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === "light" ? (
+                  <Moon className="h-5 w-5" />
+                ) : (
+                  <Sun className="h-5 w-5" />
+                )}
+              </Button>
+
               {isAuthenticated ? (
                 <>
-                  {/* Notifications (Optional) */}
+                  {/* Notifications */}
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="relative hidden md:flex"
+                    className="relative hidden md:flex hover:bg-primary/10 transition-colors"
                   >
                     <Bell className="h-5 w-5" />
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                   </Button>
 
                   {/* User Dropdown */}
@@ -231,12 +248,14 @@ export function Navbar() {
                         </Link>
                       </DropdownMenuItem>
 
-                      <DropdownMenuItem asChild>
-                        <Link href="/dashboard" className="cursor-pointer">
-                          <LayoutDashboard className="mr-2 h-4 w-4" />
-                          Dashboard
-                        </Link>
-                      </DropdownMenuItem>
+                      {user?.role === "ADMIN" && (
+                        <DropdownMenuItem asChild>
+                          <Link href="/dashboard" className="cursor-pointer">
+                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                            Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
 
                       <DropdownMenuItem asChild>
                         <Link href="/settings" className="cursor-pointer">
@@ -249,7 +268,7 @@ export function Navbar() {
 
                       <DropdownMenuItem
                         onClick={handleLogout}
-                        className="cursor-pointer text-red-600 focus:text-red-600"
+                        className="cursor-pointer text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
                       >
                         <LogOut className="mr-2 h-4 w-4" />
                         Logout
@@ -283,7 +302,7 @@ export function Navbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden"
+                className="lg:hidden hover:bg-primary/10"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 {mobileMenuOpen ? (
@@ -363,8 +382,32 @@ export function Navbar() {
                 })}
               </div>
 
+              {/* Dark Mode Toggle (Mobile) */}
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-3 mb-2">
+                  Appearance
+                </p>
+                <Button
+                  variant="ghost"
+                  onClick={toggleTheme}
+                  className="w-full justify-start gap-3 h-12"
+                >
+                  {theme === "light" ? (
+                    <>
+                      <Moon className="h-5 w-5" />
+                      Dark Mode
+                    </>
+                  ) : (
+                    <>
+                      <Sun className="h-5 w-5" />
+                      Light Mode
+                    </>
+                  )}
+                </Button>
+              </div>
+
               {/* Quick Actions */}
-              {isAuthenticated && (
+              {isAuthenticated && user?.role === "ADMIN" && (
                 <div className="space-y-1">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-3 mb-2">
                     Quick Actions
@@ -404,7 +447,7 @@ export function Navbar() {
                   <Button
                     variant="ghost"
                     onClick={handleLogout}
-                    className="w-full justify-start gap-3 h-12 text-red-600 hover:text-red-600 hover:bg-red-50"
+                    className="w-full justify-start gap-3 h-12 text-red-600 hover:text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/20"
                   >
                     <LogOut className="h-5 w-5" />
                     Logout
