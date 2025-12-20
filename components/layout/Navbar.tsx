@@ -34,7 +34,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
-// ইউজার নামের আদ্যাক্ষর বের করার ফাংশন
 const getInitials = (fullName: string) => {
   if (!fullName) return "";
   const parts = fullName.trim().split(/\s+/);
@@ -59,14 +58,6 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  // ❌ যে useEffect টি Cascading Render তৈরি করত, তা মুছে ফেলা হয়েছে।
-  // কারণ মোবাইল লিঙ্কে ক্লিক করার সময়ই মেনু বন্ধ হচ্ছে।
-  /*
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
-  */
 
   const handleLogout = async () => {
     await logout();
@@ -355,7 +346,6 @@ export function Navbar() {
                     <Link
                       key={link.href}
                       href={link.href}
-                      // ✅ লিঙ্ক ক্লিক হলে মেনু বন্ধ করার জন্য এটিই যথেষ্ট
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <Button
@@ -389,30 +379,6 @@ export function Navbar() {
                     >
                       <LayoutDashboard className="h-5 w-5" />
                       Dashboard
-                    </Button>
-                  </Link>
-                  <Link
-                    href="/reviews"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start gap-3 h-12"
-                    >
-                      <Star className="h-5 w-5" />
-                      My Reviews
-                    </Button>
-                  </Link>
-                  <Link
-                    href="/settings"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start gap-3 h-12"
-                    >
-                      <Settings className="h-5 w-5" />
-                      Settings
                     </Button>
                   </Link>
                 </div>
