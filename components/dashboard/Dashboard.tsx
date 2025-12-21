@@ -17,6 +17,7 @@ import {
   Eye,
   Star,
   Ticket,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -25,7 +26,11 @@ import { api } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 
 export function UserDashboard() {
-  const { data: bookings, isLoading } = useQuery({
+  const {
+    data: bookings,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["user-bookings"],
     queryFn: async () => {
       const response = await api.get<{ data: Booking[] }>(
@@ -33,6 +38,8 @@ export function UserDashboard() {
       );
       return response.data.data;
     },
+    refetchInterval: 30000, // ✅ Auto refetch every 30 seconds
+    refetchOnWindowFocus: true, // ✅ Refetch when window focus
   });
 
   const upcomingBookings = bookings?.filter(
@@ -99,6 +106,10 @@ export function UserDashboard() {
             <p className="text-muted-foreground">
               Manage your event bookings and experiences
             </p>
+            <Button onClick={() => refetch()} variant="outline" size="sm">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
           </div>
           <Link href="/events">
             <Button size="lg" className="gap-2 shadow-lg w-full md:w-auto">

@@ -17,6 +17,7 @@ import {
   Tag,
   X,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
@@ -207,44 +208,73 @@ export function BookingForm({
                 </div>
               </div>
             ) : (
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Enter code (e.g., WELCOME10)"
-                    value={couponCode}
-                    onChange={(e) => {
-                      setCouponCode(e.target.value.toUpperCase());
-                      setCouponError("");
-                    }}
-                    className={couponError ? "border-red-500" : ""}
-                    disabled={joining || validateCoupon.isPending}
-                  />
-                  {couponError && (
-                    <p className="text-xs text-red-500 mt-1">{couponError}</p>
-                  )}
+              <>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Enter code (e.g., WELCOME20)"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value.toUpperCase());
+                        setCouponError("");
+                      }}
+                      className={couponError ? "border-red-500" : ""}
+                      disabled={joining || validateCoupon.isPending}
+                    />
+                    {couponError && (
+                      <p className="text-xs text-red-500 mt-1">{couponError}</p>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={applyCoupon}
+                    disabled={
+                      joining || !couponCode.trim() || validateCoupon.isPending
+                    }
+                    className="px-6"
+                  >
+                    {validateCoupon.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Apply"
+                    )}
+                  </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={applyCoupon}
-                  disabled={
-                    joining || !couponCode.trim() || validateCoupon.isPending
-                  }
-                  className="px-6"
-                >
-                  {validateCoupon.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Apply"
-                  )}
-                </Button>
-              </div>
-            )}
 
-            {/* Available Coupons Hint */}
-            {!appliedCoupon && (
-              <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
-                💡 Try: WELCOME10, SAVE20, or FLAT50
-              </div>
+                {/* স্পেশাল অফার ব্যানার */}
+                <div
+                  className="relative overflow-hidden group cursor-pointer border border-primary/20 bg-primary/5 hover:bg-primary/10 p-3 rounded-xl transition-all"
+                  onClick={() => setCouponCode("WELCOME20")}
+                >
+                  <div className="flex items-center justify-between relative z-10">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-primary text-white p-1 rounded-md">
+                        <Sparkles className="h-3 w-3" />
+                      </div>
+                      <div>
+                        <p className="text-[11px] uppercase tracking-wider font-bold text-primary/70">
+                          Special Offer
+                        </p>
+                        <p className="text-sm font-bold">
+                          Use <span className="text-primary">WELCOME20</span>{" "}
+                          for 20% OFF!
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-xs hover:bg-primary hover:text-white transition-colors"
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                  {/* Background decoration */}
+                  <div className="absolute -right-2 -top-2 opacity-10 group-hover:scale-110 transition-transform">
+                    <Tag className="h-12 w-12 rotate-12" />
+                  </div>
+                </div>
+              </>
             )}
           </div>
         )}
