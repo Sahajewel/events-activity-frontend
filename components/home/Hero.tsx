@@ -15,6 +15,7 @@ import {
 import { usePublicStats } from "@/hooks/useAdmin";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/hooks/useAuth";
+import AIEventAssistant from "../AI/AIEventAssistance";
 
 export function Hero() {
   const { data: stats } = usePublicStats();
@@ -338,6 +339,7 @@ export function Hero() {
           }
         }
       `}</style>
+      <AIEventAssistant></AIEventAssistant>
     </section>
   );
 }

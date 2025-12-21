@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useEvents } from "@/hooks/useEvents";
@@ -22,24 +22,39 @@ import {
   Search,
   Filter,
   MapPin,
-  Calendar,
   SlidersHorizontal,
   X,
   TrendingUp,
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  Loader2,
+  Zap,
 } from "lucide-react";
 
 export default function EventsPage() {
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [type, setType] = useState("");
   const [location, setLocation] = useState("");
   const [page, setPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setIsSearching(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const filters = {
-    search,
+    search: debouncedSearch,
     type: type || undefined,
     location: location || undefined,
     page,
@@ -58,14 +73,79 @@ export default function EventsPage() {
     { value: "Outdoor", label: "Outdoor", icon: "🏔️" },
   ];
 
-  const activeFiltersCount = [search, type, location].filter(Boolean).length;
+  // Smart search suggestions based on popular searches
+  const popularSearches = [
+    "Music Concert",
+    "Tech Meetup",
+    "Food Festival",
+    "Yoga Session",
+    "Hiking Trip",
+    "Art Exhibition",
+    "Sports Tournament",
+    "Workshop",
+    "Networking Event",
+    "Gaming Night",
+  ];
+
+  // Generate AI-powered suggestions
+  const generateSuggestions = useCallback((input: string) => {
+    if (!input || input.length < 2) {
+      setSearchSuggestions([]);
+      return;
+    }
+
+    const lowercaseInput = input.toLowerCase();
+
+    // Filter suggestions based on input
+    const filtered = popularSearches.filter((suggestion) =>
+      suggestion.toLowerCase().includes(lowercaseInput)
+    );
+
+    // Add smart variations
+    const smartSuggestions = [
+      ...filtered,
+      `${input} near me`,
+      `${input} this weekend`,
+      `${input} events`,
+    ].slice(0, 5);
+
+    setSearchSuggestions(smartSuggestions);
+    setShowSuggestions(true);
+  }, []);
+
+  // Handle search input
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    generateSuggestions(value);
+    setPage(1);
+  };
+
+  // Apply suggestion
+  const applySuggestion = (suggestion: string) => {
+    setSearch(suggestion);
+    setDebouncedSearch(suggestion);
+    setShowSuggestions(false);
+  };
+
+  const activeFiltersCount = [debouncedSearch, type, location].filter(
+    Boolean
+  ).length;
 
   const clearFilters = () => {
     setSearch("");
+    setDebouncedSearch("");
     setType("");
     setLocation("");
     setPage(1);
+    setSearchSuggestions([]);
   };
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setShowSuggestions(false);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -86,9 +166,72 @@ export default function EventsPage() {
             <h1 className="text-4xl md:text-6xl font-bold mb-4">
               Discover Amazing Events
             </h1>
-            <p className="text-xl md:text-2xl text-white/90">
-              Find your next adventure and connect with incredible people
+            <p className="text-xl md:text-2xl text-white/90 mb-6">
+              Find your next adventure with AI-powered search
             </p>
+
+            {/* Hero Search Bar */}
+            <div className="relative max-w-2xl">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  placeholder="Try 'Music Concert', 'Tech Meetup', or 'Food Festival'..."
+                  value={search}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (search.length >= 2) setShowSuggestions(true);
+                  }}
+                  className="pl-12 pr-12 h-14 text-base bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-2 border-white/20 focus:border-white shadow-2xl"
+                />
+                {isSearching && (
+                  <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-primary animate-spin" />
+                )}
+                {search && !isSearching && (
+                  <button
+                    onClick={() => {
+                      setSearch("");
+                      setDebouncedSearch("");
+                      setSearchSuggestions([]);
+                    }}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full p-1"
+                  >
+                    <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  </button>
+                )}
+              </div>
+
+              {/* AI Suggestions Dropdown */}
+              {showSuggestions && searchSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden z-50">
+                  <div className="p-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-2 px-3">
+                      <Zap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                        AI-Powered Suggestions
+                      </span>
+                    </div>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {searchSuggestions.map((suggestion, idx) => (
+                      <button
+                        key={idx}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          applySuggestion(suggestion);
+                        }}
+                        className="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-3 group"
+                      >
+                        <Search className="h-4 w-4 text-gray-400 group-hover:text-primary" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-primary">
+                          {suggestion}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -122,7 +265,7 @@ export default function EventsPage() {
               <div className="flex items-center justify-between mb-4 md:hidden">
                 <h3 className="font-semibold flex items-center gap-2">
                   <Filter className="h-4 w-4" />
-                  Filters
+                  Advanced Filters
                   {activeFiltersCount > 0 && (
                     <Badge variant="default" className="ml-2">
                       {activeFiltersCount}
@@ -148,19 +291,11 @@ export default function EventsPage() {
                       <Input
                         placeholder="Search events..."
                         value={search}
-                        onChange={(e) => {
-                          setSearch(e.target.value);
-                          setPage(1);
-                        }}
+                        onChange={(e) => handleSearchChange(e.target.value)}
                         className="pl-10 h-11"
                       />
-                      {search && (
-                        <button
-                          onClick={() => setSearch("")}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                        >
-                          <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                        </button>
+                      {isSearching && (
+                        <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary animate-spin" />
                       )}
                     </div>
                   </div>
@@ -243,8 +378,9 @@ export default function EventsPage() {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">No Events Found</h3>
                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  We couldn&apos;t find any events matching your criteria. Try
-                  adjusting your filters.
+                  We couldn&apos;t find any events matching &quot;
+                  {debouncedSearch || "your criteria"}&quot;. Try different
+                  keywords!
                 </p>
                 {activeFiltersCount > 0 && (
                   <Button onClick={clearFilters} variant="outline">
@@ -260,7 +396,14 @@ export default function EventsPage() {
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-primary" />
                   <p className="text-muted-foreground">
-                    Showing{" "}
+                    {debouncedSearch && (
+                      <span>
+                        Results for{" "}
+                        <span className="font-semibold text-foreground">
+                          {debouncedSearch}
+                        </span>{" "}
+                      </span>
+                    )}
                     <span className="font-semibold text-foreground">
                       {data?.data.length}
                     </span>{" "}
@@ -312,7 +455,6 @@ export default function EventsPage() {
                 <Card>
                   <CardContent className="p-6">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                      {/* Previous Button */}
                       <Button
                         variant="outline"
                         onClick={() => setPage(page - 1)}
@@ -323,7 +465,6 @@ export default function EventsPage() {
                         Previous
                       </Button>
 
-                      {/* Page Numbers */}
                       <div className="flex items-center gap-1 overflow-x-auto">
                         {Array.from(
                           { length: Math.min(data.pagination.totalPages, 7) },
@@ -356,7 +497,6 @@ export default function EventsPage() {
                         )}
                       </div>
 
-                      {/* Next Button */}
                       <Button
                         variant="outline"
                         onClick={() => setPage(page + 1)}
@@ -368,7 +508,6 @@ export default function EventsPage() {
                       </Button>
                     </div>
 
-                    {/* Page Info */}
                     <div className="text-center mt-4 text-sm text-muted-foreground">
                       Page {page} of {data.pagination.totalPages}
                     </div>
