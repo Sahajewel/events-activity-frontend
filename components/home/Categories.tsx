@@ -34,7 +34,7 @@ export function Categories() {
     {
       name: "Music & Concerts",
       icon: Music,
-      count: categoryCounts?.Music || 120,
+
       color: "from-pink-500 to-rose-500",
       bgColor: "bg-pink-500/10",
       hoverBg: "hover:bg-pink-500/20",
@@ -45,7 +45,7 @@ export function Categories() {
     {
       name: "Sports & Fitness",
       icon: Dumbbell,
-      count: categoryCounts?.Sports || 85,
+
       color: "from-green-500 to-emerald-500",
       bgColor: "bg-green-500/10",
       hoverBg: "hover:bg-green-500/20",
@@ -56,7 +56,7 @@ export function Categories() {
     {
       name: "Technology",
       icon: Laptop,
-      count: categoryCounts?.Technology || 95,
+
       color: "from-blue-500 to-cyan-500",
       bgColor: "bg-blue-500/10",
       hoverBg: "hover:bg-blue-500/20",
@@ -67,7 +67,7 @@ export function Categories() {
     {
       name: "Food & Dining",
       icon: UtensilsCrossed,
-      count: categoryCounts?.Food || 70,
+
       color: "from-orange-500 to-amber-500",
       bgColor: "bg-orange-500/10",
       hoverBg: "hover:bg-orange-500/20",
@@ -78,7 +78,7 @@ export function Categories() {
     {
       name: "Arts & Culture",
       icon: Palette,
-      count: categoryCounts?.Arts || 60,
+
       color: "from-purple-500 to-violet-500",
       bgColor: "bg-purple-500/10",
       hoverBg: "hover:bg-purple-500/20",
@@ -89,7 +89,7 @@ export function Categories() {
     {
       name: "Outdoor & Adventure",
       icon: Bike,
-      count: categoryCounts?.Outdoor || 75,
+
       color: "from-teal-500 to-green-500",
       bgColor: "bg-teal-500/10",
       hoverBg: "hover:bg-teal-500/20",
@@ -100,9 +100,9 @@ export function Categories() {
   ];
 
   // Find most popular category
-  const mostPopular = categories.reduce((prev, current) =>
-    prev.count > current.count ? prev : current
-  );
+  // const mostPopular = categories.reduce((prev, current) =>
+  //   prev.count > current.count ? prev : current
+  // );
 
   return (
     <section className="py-16 md:py-24 bg-gradient-to-b from-muted/30 via-muted/50 to-muted/30 relative overflow-hidden">
@@ -132,7 +132,7 @@ export function Categories() {
           {categories.map((category, index) => {
             const Icon = category.icon;
             const isHovered = hoveredIndex === index;
-            const isMostPopular = category.name === mostPopular.name;
+            // const isMostPopular = category.name === mostPopular.name;
 
             return (
               <Link
@@ -153,12 +153,12 @@ export function Categories() {
                 `}
                 >
                   {/* Popular Badge */}
-                  {isMostPopular && (
+                  {/* {isMostPopular && (
                     <div className="absolute -top-2 -right-2 px-2 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1 animate-pulse">
                       <TrendingUp className="h-3 w-3" />
                       <span className="hidden sm:inline">Hot</span>
                     </div>
-                  )}
+                  )} */}
 
                   {/* Icon Container */}
                   <div
@@ -194,9 +194,6 @@ export function Categories() {
 
                   {/* Event Count */}
                   <div className="flex items-center justify-center gap-1 text-xs sm:text-sm text-muted-foreground mb-2">
-                    <span className="font-semibold text-foreground">
-                      {category.count}+
-                    </span>
                     <span className="hidden sm:inline">Events</span>
                   </div>
 

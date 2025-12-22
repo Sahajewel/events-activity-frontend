@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Mail, Phone, MapPin, Send, Loader2, CheckCircle } from "lucide-react";
@@ -32,16 +31,11 @@ export default function Contact() {
 
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
-
-    // Replace with your real API later
-    // await fetch('/api/contact', { method: 'POST', body: JSON.stringify(data) })
-    await new Promise((resolve) => setTimeout(resolve, 1500)); // fake delay
-
+    await new Promise((resolve) => setTimeout(resolve, 1500));
     setIsSubmitting(false);
     setIsSuccess(true);
     toast.success("Message sent! We'll reply soon");
     reset();
-
     setTimeout(() => setIsSuccess(false), 6000);
   };
 
@@ -57,14 +51,14 @@ export default function Contact() {
         </div>
       </section>
 
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="container mx-auto px-6 max-w-6xl">
           <div className="grid md:grid-cols-2 gap-12 lg:gap-20">
             {/* Contact Form */}
-            <div className="bg-white rounded-3xl shadow-xl p-8 lg:p-12">
+            <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 lg:p-12">
               {isSuccess && (
-                <div className="mb-8 flex items-center gap-3 p-4 bg-green-50 border border-green-200 text-green-800 rounded-xl">
-                  <CheckCircle className="w-7 h-7 text-green-600" />
+                <div className="mb-8 flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300 rounded-xl">
+                  <CheckCircle className="w-7 h-7 text-green-600 dark:text-green-400" />
                   <span className="font-medium">
                     Message sent successfully! We&apos;ll reply soon
                   </span>
@@ -75,14 +69,14 @@ export default function Contact() {
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-lg font-semibold mb-2"
+                    className="block text-lg font-semibold mb-2 text-gray-800 dark:text-white"
                   >
                     Your Name
                   </label>
                   <input
                     id="name"
                     {...register("name")}
-                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 transition"
+                    className="w-full px-5 py-4 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-xl focus:ring-4 focus:ring-indigo-200 dark:focus:ring-indigo-800 focus:border-indigo-500 dark:focus:border-indigo-400 transition"
                     placeholder="John Doe"
                   />
                   {errors.name && (
@@ -95,7 +89,7 @@ export default function Contact() {
                 <div>
                   <label
                     htmlFor="email"
-                    className="block text-lg font-semibold mb-2"
+                    className="block text-lg font-semibold mb-2 text-gray-800 dark:text-white"
                   >
                     Email Address
                   </label>
@@ -103,7 +97,7 @@ export default function Contact() {
                     id="email"
                     type="email"
                     {...register("email")}
-                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 transition"
+                    className="w-full px-5 py-4 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-xl focus:ring-4 focus:ring-indigo-200 dark:focus:ring-indigo-800 focus:border-indigo-500 dark:focus:border-indigo-400 transition"
                     placeholder="john@example.com"
                   />
                   {errors.email && (
@@ -116,14 +110,14 @@ export default function Contact() {
                 <div>
                   <label
                     htmlFor="subject"
-                    className="block text-lg font-semibold mb-2"
+                    className="block text-lg font-semibold mb-2 text-gray-800 dark:text-white"
                   >
                     Subject
                   </label>
                   <input
                     id="subject"
                     {...register("subject")}
-                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 transition"
+                    className="w-full px-5 py-4 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-xl focus:ring-4 focus:ring-indigo-200 dark:focus:ring-indigo-800 focus:border-indigo-500 dark:focus:border-indigo-400 transition"
                     placeholder="e.g. Partnership, Bug Report, Feature Request"
                   />
                   {errors.subject && (
@@ -136,7 +130,7 @@ export default function Contact() {
                 <div>
                   <label
                     htmlFor="message"
-                    className="block text-lg font-semibold mb-2"
+                    className="block text-lg font-semibold mb-2 text-gray-800 dark:text-white"
                   >
                     Your Message
                   </label>
@@ -144,7 +138,7 @@ export default function Contact() {
                     id="message"
                     {...register("message")}
                     rows={7}
-                    className="w-full px-5 py-4 border border-gray-300 rounded-xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 transition resize-none"
+                    className="w-full px-5 py-4 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 rounded-xl focus:ring-4 focus:ring-indigo-200 dark:focus:ring-indigo-800 focus:border-indigo-500 dark:focus:border-indigo-400 transition resize-none"
                     placeholder="Write your message here..."
                   />
                   {errors.message && (
@@ -227,8 +221,7 @@ export default function Contact() {
                 </div>
               </div>
 
-              {/* Optional Map Placeholder */}
-              <div className="bg-gray-200 border-2 border-dashed rounded-2xl h-64 flex items-center justify-center text-gray-500 font-medium">
+              <div className="bg-gray-200 dark:bg-gray-700 border-2 border-dashed rounded-2xl h-64 flex items-center justify-center text-gray-500 dark:text-gray-400 font-medium">
                 Google Maps Embed (Optional)
               </div>
             </div>

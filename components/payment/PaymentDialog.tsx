@@ -31,12 +31,13 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+import { useTheme } from "next-themes"; // ✅ Import next-themes hook
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
 
-// Stripe Payment Form Component
+// --- Stripe Payment Form Component ---
 function StripePaymentForm({
   paymentIntentId,
   amount,
@@ -85,7 +86,6 @@ function StripePaymentForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Payment Element with loading indicator */}
       <div className="relative">
         <PaymentElement
           onReady={() => setPaymentReady(true)}
@@ -97,7 +97,7 @@ function StripePaymentForm({
           }}
         />
         {!paymentReady && (
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center rounded-lg z-10">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">
@@ -108,23 +108,22 @@ function StripePaymentForm({
         )}
       </div>
 
-      {/* Security Badge */}
-      <div className="flex items-center justify-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-        <Shield className="h-4 w-4 text-green-600" />
-        <p className="text-xs text-green-800 font-medium">
+      <div className="flex items-center justify-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+        <Shield className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+        <p className="text-xs text-emerald-800 dark:text-emerald-300 font-medium">
           Secured by 256-bit SSL encryption
         </p>
       </div>
 
-      {/* Amount Summary */}
-      <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
-        <span className="text-sm font-medium">Total Amount</span>
+      <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border border-border">
+        <span className="text-sm font-medium text-foreground">
+          Total Amount
+        </span>
         <span className="text-2xl font-bold text-primary">
           ${amount.toLocaleString()}
         </span>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3">
         <Button
           type="button"
@@ -138,42 +137,24 @@ function StripePaymentForm({
         <Button
           type="submit"
           disabled={isProcessing || !stripe || !elements || !paymentReady}
-          className="w-full sm:flex-1 gap-2 order-1 sm:order-2 shadow-lg hover:shadow-xl transition-all"
+          className="w-full sm:flex-1 gap-2 order-1 sm:order-2 shadow-lg font-bold"
         >
           {isProcessing ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Processing Payment...
+              <Loader2 className="h-4 w-4 animate-spin" /> Processing...
             </>
           ) : (
             <>
-              <Lock className="h-4 w-4" />
-              Pay ${amount.toLocaleString()}
+              <Lock className="h-4 w-4" /> Pay ${amount.toLocaleString()}
             </>
           )}
         </Button>
-      </div>
-
-      {/* Trust Indicators */}
-      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground pt-2">
-        <div className="flex items-center gap-1">
-          <CheckCircle2 className="h-3 w-3 text-green-500" />
-          <span>Secure Payment</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <CheckCircle2 className="h-3 w-3 text-green-500" />
-          <span>Instant Confirmation</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <CheckCircle2 className="h-3 w-3 text-green-500" />
-          <span>Refund Available</span>
-        </div>
       </div>
     </form>
   );
 }
 
-// Main PaymentDialog
+// --- Main PaymentDialog Component ---
 interface PaymentDialogProps {
   bookingId: string;
   amount: number;
@@ -191,6 +172,7 @@ export function PaymentDialog({
   onOpenChange,
   onSuccess,
 }: PaymentDialogProps) {
+  const { theme } = useTheme(); // ✅ Detect current theme (dark/light)
   const createIntent = useCreatePaymentIntent();
   const confirmPayment = useConfirmPayment();
 
@@ -224,203 +206,115 @@ export function PaymentDialog({
           setClientSecret(data.clientSecret || "");
           setIsDemoMode(data.paymentIntentId.startsWith("demo_pi_"));
         },
-        onError: (err: any) => {
-          const msg = err.response?.data?.message || "Failed to setup payment";
-          toast.error(msg);
-          if (msg.includes("already exists") || err.response?.status === 409) {
-            return;
-          }
-          handleDialogChange(false);
-        },
       });
     }
-  }, [open, bookingId, paymentIntentId, createIntent, handleDialogChange]);
+  }, [open, bookingId, paymentIntentId, createIntent]);
 
   const handleDemoConfirm = async () => {
     if (!paymentIntentId) return;
     try {
       await confirmPayment.mutateAsync(paymentIntentId);
-      toast.success("Joined successfully! (Demo) 🎉");
+      toast.success("Joined successfully! 🎉");
       onSuccess();
     } catch (err) {
-      toast.error("Failed to confirm demo payment");
+      toast.error("Failed to confirm payment");
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto bg-card text-foreground border-border">
         <DialogHeader className="space-y-3">
-          {/* Icon Badge */}
           <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center mx-auto shadow-lg">
             <CreditCard className="h-7 w-7 text-white" />
           </div>
-
-          <DialogTitle className="text-2xl text-center">
+          <DialogTitle className="text-2xl text-center font-bold">
             Complete Your Booking
           </DialogTitle>
-          <DialogDescription className="text-center">
+          <DialogDescription className="text-center text-muted-foreground">
             You&apos;re joining{" "}
-            <span className="font-semibold text-foreground">{eventName}</span>
+            <span className="font-semibold text-foreground underline decoration-primary/30">
+              {eventName}
+            </span>
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Amount Display */}
-          <div className="text-center p-6 bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-2xl border border-primary/20">
-            <p className="text-sm text-muted-foreground mb-2 flex items-center justify-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Total Amount
-            </p>
-            <p className="text-5xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+          <div className="text-center p-6 bg-muted/30 rounded-2xl border border-border">
+            <p className="text-sm text-muted-foreground mb-1">Total Amount</p>
+            <p className="text-5xl font-bold text-foreground">
               ${amount.toLocaleString()}
-            </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              One-time payment • No hidden fees
             </p>
           </div>
 
-          {/* Demo Mode Notice */}
-          {isDemoMode && (
-            <div className="relative overflow-hidden rounded-xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-orange-50 p-4">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-300/20 rounded-full blur-3xl" />
-              <div className="relative flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-yellow-400/20 flex items-center justify-center flex-shrink-0">
-                  <Zap className="h-5 w-5 text-yellow-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-yellow-900 mb-1">
-                    Demo Mode Active
-                  </p>
-                  <p className="text-xs text-yellow-700">
-                    This is a test payment. No real charges will be made.
-                  </p>
-                </div>
-                <Badge
-                  variant="secondary"
-                  className="bg-yellow-200 text-yellow-900"
-                >
-                  TEST
-                </Badge>
-              </div>
-            </div>
-          )}
-
-          {/* Loading State */}
           {createIntent.isPending ? (
             <div className="flex flex-col items-center py-12">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-                <CreditCard className="absolute inset-0 m-auto h-6 w-6 text-primary" />
-              </div>
-              <p className="mt-6 text-sm font-medium text-foreground">
-                Setting up secure payment...
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                This will only take a moment
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              <p className="mt-4 text-sm font-medium">
+                Initializing secure gateway...
               </p>
             </div>
           ) : isDemoMode ? (
-            /* Demo Mode Payment */
-            <div className="space-y-4">
-              {/* Info Box */}
-              <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-1">Demo Payment Instructions</p>
-                  <p className="text-xs">
-                    Click the button below to simulate a successful payment.
-                    Your booking will be confirmed instantly.
-                  </p>
-                </div>
-              </div>
-
-              {/* Demo Confirm Button */}
+            <div className="space-y-3">
               <Button
                 size="lg"
-                className="w-full gap-2 shadow-lg hover:shadow-xl transition-all"
+                className="w-full font-bold"
                 onClick={handleDemoConfirm}
                 disabled={confirmPayment.isPending}
               >
-                {confirmPayment.isPending ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Processing Demo Payment...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="h-5 w-5" />
-                    Confirm Demo Payment
-                  </>
-                )}
+                {confirmPayment.isPending
+                  ? "Confirming..."
+                  : "Confirm Demo Payment"}
               </Button>
-
               <Button
                 variant="outline"
                 className="w-full"
                 onClick={() => handleDialogChange(false)}
-                disabled={confirmPayment.isPending}
               >
                 Cancel
               </Button>
             </div>
-          ) : clientSecret && paymentIntentId ? (
-            /* Real Stripe Payment */
-            <Elements
-              stripe={stripePromise}
-              options={{
-                clientSecret,
-                appearance: {
-                  theme: "stripe",
-                  variables: {
-                    colorPrimary: "#0F172A",
-                    colorBackground: "#ffffff",
-                    colorText: "#0F172A",
-                    colorDanger: "#df1b41",
-                    fontFamily: "system-ui, sans-serif",
-                    spacingUnit: "4px",
-                    borderRadius: "8px",
+          ) : (
+            clientSecret && (
+              <Elements
+                stripe={stripePromise}
+                options={{
+                  clientSecret,
+                  appearance: {
+                    // ✅ Dynamic appearance logic for Dark/Light Mode
+                    theme: theme === "dark" ? "night" : "stripe",
+                    variables: {
+                      colorPrimary: "#3b82f6",
+                      colorBackground: theme === "dark" ? "#1e293b" : "#ffffff",
+                      colorText: theme === "dark" ? "#f8fafc" : "#0f172a",
+                      colorDanger: "#ef4444",
+                      fontFamily: "Inter, system-ui, sans-serif",
+                    },
+                    rules: {
+                      // ✅ Specifically fix Label colors (Card number, Country etc.)
+                      ".Label": {
+                        color: theme === "dark" ? "#94a3b8" : "#475569",
+                        fontWeight: "500",
+                        marginBottom: "8px",
+                      },
+                      ".Input": {
+                        backgroundColor:
+                          theme === "dark" ? "#0f172a" : "#ffffff",
+                        color: theme === "dark" ? "#ffffff" : "#0f172a",
+                        borderColor: theme === "dark" ? "#334155" : "#e2e8f0",
+                      },
+                    },
                   },
-                },
-              }}
-            >
-              <StripePaymentForm
-                paymentIntentId={paymentIntentId}
-                amount={amount}
-                onSuccess={onSuccess}
-                onClose={() => handleDialogChange(false)}
-              />
-            </Elements>
-          ) : createIntent.isError ? (
-            /* Error State */
-            <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="h-8 w-8 text-red-600" />
-              </div>
-              <p className="font-medium text-foreground mb-2">
-                Payment Setup Failed
-              </p>
-              <p className="text-sm text-muted-foreground mb-6">
-                We couldn&apos;t initialize the payment. Please try again.
-              </p>
-              <Button
-                onClick={() => handleDialogChange(false)}
-                variant="outline"
+                }}
               >
-                Close
-              </Button>
-            </div>
-          ) : null}
-
-          {/* Stripe Branding */}
-          {!isDemoMode && !createIntent.isPending && clientSecret && (
-            <div className="text-center pt-4 border-t">
-              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <Lock className="h-3 w-3" />
-                <span>Secured and powered by</span>
-                <span className="font-bold text-[#635BFF]">Stripe</span>
-              </div>
-            </div>
+                <StripePaymentForm
+                  paymentIntentId={paymentIntentId}
+                  amount={amount}
+                  onSuccess={onSuccess}
+                  onClose={() => handleDialogChange(false)}
+                />
+              </Elements>
+            )
           )}
         </div>
       </DialogContent>

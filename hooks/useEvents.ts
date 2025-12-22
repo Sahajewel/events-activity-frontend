@@ -102,20 +102,66 @@ export function useUpdateEvent(id: string) {
 }
 
 // Delete event
+// Admin Delete Event (Admin bypasses ownership check)
+// hooks/useEvents.ts context e eita oboshshoi thakte hobe
+// export function useDeleteEvent() {
+//   const queryClient = useQueryClient();
+
+//   return useMutation({
+//     mutationFn: async (id: string) => {
+//       const response = await api.delete(`/events/${id}`);
+//       return response.data;
+//     },
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({ queryKey: ["events"] });
+//       toast.success("Event deleted successfully!");
+//     },
+//     onError: (error: any) => {
+//       toast.error(error.response?.data?.message || "Failed to delete event");
+//     },
+//   });
+// }
+
+// Regular delete (Used by Host in Edit Page)
+
+// Admin delete (Used by Admin in Control Page)
 export function useDeleteEvent() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationFn: async (eventId: string) => {
+      // Backend router e path hocche /events/:id
+      return await api.delete(`/events/${eventId}`);
+    },
+    onSuccess: async () => {
+      // Shob relevant queries invalidate koren
+      await queryClient.invalidateQueries({ queryKey: ["admin-events"] });
+      await queryClient.invalidateQueries({ queryKey: ["events"] });
+      toast.success("Event removed successfully!");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Delete failed");
+    },
+  });
+}
+
+// Admin delete hook (Jodi backend e /admin route thake)
+export function useAdminDeleteEvent() {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: async (id: string) => {
-      const response = await api.delete(`/events/${id}`);
+      const response = await api.delete(`/admin/events/${id}`);
       return response.data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-events"] });
       queryClient.invalidateQueries({ queryKey: ["events"] });
-      toast.success("Event deleted successfully!");
+      toast.success("Event removed permanently by Admin!");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to delete event");
+      toast.error(
+        error.response?.data?.message || "Admin delete permission error"
+      );
     },
   });
 }
