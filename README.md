@@ -284,7 +284,7 @@ This project is licensed under the MIT License.
 
 **Your Name**
 - GitHub: [@Sahajewel](https://github.com/Sahajewel)
-- Email: your.jewelsaha072@gmail.com
+- Email: jewelsaha072@gmail.com
 
 ## 🙏 Acknowledgments
 
